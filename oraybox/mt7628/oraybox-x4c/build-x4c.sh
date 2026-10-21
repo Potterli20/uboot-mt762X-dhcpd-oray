@@ -4,7 +4,8 @@
 set -euo pipefail
 
 UBOOT_TAG="${UBOOT_TAG:-v2024.07}"
-MIRROR="${UBOOT_MIRROR:-https://github.com/U-Boot/u-boot.git}"
+MIRROR="${UBOOT_MIRROR:-https://source.denx.de/u-boot/u-boot.git}"
+MIRROR_FALLBACK="${UBOOT_MIRROR_FALLBACK:-https://github.com/u-boot/u-boot.git}"
 WORK="${WORK:-/tmp/x4c-uboot}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -12,7 +13,8 @@ step() { printf '\n### %s\n' "$*"; }
 
 if [ ! -d "$WORK/u-boot" ]; then
   step "取 u-boot $UBOOT_TAG（mainline 从 v2020.07 起有 mt7628 支持）"
-  git clone --depth 1 --branch "$UBOOT_TAG" "$MIRROR" "$WORK/u-boot"
+  git clone --depth 1 --branch "$UBOOT_TAG" "$MIRROR" "$WORK/u-boot" \
+    || git clone --depth 1 --branch "$UBOOT_TAG" "$MIRROR_FALLBACK" "$WORK/u-boot"
 fi
 
 cd "$WORK/u-boot"

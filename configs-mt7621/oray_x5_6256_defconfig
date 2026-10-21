@@ -1,7 +1,7 @@
 --flash NAND
---mtdparts "512k(u-boot),512k(u-boot-env),256k(factory),512k(kpanic),-(firmware)"
+--mtdparts "512k(u-boot),512k(u-boot-env),256k(factory),512k(bdinfo),512k(kpanic),-(firmware)"
 --model "OrayBox_X5-6256"
---kernel-offset 0x1c0000
+--kernel-offset 0x240000
 # reset -> bank@0 a18
 --reset-pin 18
 # oraybox:red:status -> bank@0 a7

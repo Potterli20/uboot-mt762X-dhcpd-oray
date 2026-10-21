@@ -987,12 +987,13 @@ def synth_mtdparts(media, koffset):
 
 def parts_to_mtdparts(parts):
     cells = []
-    for p in parts:
+    parts_out = parts
+    for p in parts_out:
         size = int(p["size"], 16)
-        if p["label"] in ("bdinfo", "reserve", "overlay", "opt", "debug", "firmware_backup", "fullflash"):
+        if p["label"] in ("reserve", "fullflash") or size == 0:
             continue
-        if p["label"].startswith("UBI_DEV"):        # UBI 卷不是 mtdparts 语义
-            cells.append("-(firmware)")
+        if p["label"].startswith("UBI_DEV") or p["label"] in ("firmware", "overlay"):
+            cells.append("-(firmware)")            # firmware/UBI 起点即内核偏移，后面不再列
             break
         cells.append(f"{size_str(size)}({p['label']})")
     if cells and cells[-1].endswith("(firmware)"):
@@ -1183,6 +1184,13 @@ def cmd_boards(_args):
         if dt_cpu and not ov.get("cpufreq"):
             cpufreq = dt_cpu
         cpu_src = ov.get("cpufreq_evidence", "") or ("内核 DTB cpuclock" if dt_cpu else "override")
+        if not ram_mb and mdl.isalpha() is False:
+            fam = re.match(r"[A-Za-z]+\d*", mdl)
+            sib = next(((x["model"], x["ram_mb"]) for x in rows if fam and x["model"].startswith(fam.group()) and x["ram_mb"]), None)
+            if sib:
+                ram_mb = int(sib[1])
+                ram_src = f"同族 {sib[0]}/{sib[1]}MB 推断，待实测（本板 DTB 无 memory 节点）"
+                ddr_guess = DDR_BY_MB.get(ram_mb, "")
         if not cpufreq:
             cpufreq, cpu_src = 880, "MT7621A 标称默认（已验证 5 块板 DTB cpuclock=880MHz），未逐一实测"
         ram_src2 = ov.get("ramfreq_evidence", "") or (f"原厂 u-boot 频率立即数 {ram_implied} MT/s" if ram_implied else "")
@@ -1208,7 +1216,7 @@ def cmd_boards(_args):
         # 只对 MT7621 出 defconfig
         if soc == "MT7621" and mp:
             board = f"oray_{(mdl + '_' + hw).strip('_').lower()}"
-            ko = offset_from_mtdparts(mp) or kfw
+            ko = kfw if src in ("DTB",) and kfw else (offset_from_mtdparts(mp) or kfw)
             lines = [
                 f"--flash {'NAND' if media == 'nand' else 'NOR'}",
                 f'--mtdparts "{mp}"',
