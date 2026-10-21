@@ -4,7 +4,11 @@
 #   ./check-dts.sh                                 从 jsDelivr 取 3 个 mainline 文件
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DTS="mt7628a-oraybox-x4c"
+# 参数：要校验的 .dts（可传多个）；默认校验本目录 + boards/ 下全部
+if [ "$#" -gt 0 ]; then targets=("$@"); else
+  targets=("$HERE/mt7628a-oraybox-x4c.dts")
+  shopt -s nullglob; targets+=("$HERE"/../boards/*/*.dts); shopt -u nullglob
+fi
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/include/dt-bindings/clock" "$TMP/include/dt-bindings/reset"
 
@@ -29,14 +33,18 @@ else
     [ "$ok" = 1 ] || { echo "!! 取不到 $f（jsDelivr 抽风？可用 UBOOT_SRC 指向本地 mainline 树）"; exit 2; }
   done
 fi
-cp "$HERE/$DTS.dts" "$TMP/"
 command -v dtc >/dev/null || { echo "!! 需要 device-tree-compiler"; exit 2; }
-
-cpp -nostdinc -I"$TMP" -I"$TMP/include" -D__DTS__ -x assembler-with-cpp \
-    "$TMP/$DTS.dts" -o "$TMP/pp.dts" || { echo "!! 预处理失败"; exit 1; }
-if dtc -I dts -O dtb -o "$TMP/out.dtb" "$TMP/pp.dts" 2>"$TMP/dtc.log"; then
-  echo "DTS 校验通过：$(wc -c <"$TMP/out.dtb") 字节 DTB"
-  grep -E "^$(basename "$TMP")/$DTS.dts|error|Warning" "$TMP/dtc.log" | grep -v "also defined at" || true
-  exit 0
-fi
-echo "!! DTS 编译失败："; cat "$TMP/dtc.log"; exit 1
+rc=0
+for dts in "${targets[@]}"; do
+  [ -f "$dts" ] || { echo "!! 找不到 $dts"; rc=1; continue; }
+  DTS=$(basename "$dts" .dts)
+  cp "$dts" "$TMP/$DTS.dts"
+  if cpp -nostdinc -I"$TMP" -I"$TMP/include" -D__DTS__ -x assembler-with-cpp \
+       "$TMP/$DTS.dts" -o "$TMP/$DTS.pp.dts" 2>"$TMP/cpp.log" \
+     && dtc -I dts -O dtb -o "$TMP/$DTS.dtb" "$TMP/$DTS.pp.dts" 2>"$TMP/dtc.log"; then
+    printf 'PASS %-40s %s 字节 DTB\n' "$DTS" "$(wc -c <"$TMP/$DTS.dtb")"
+  else
+    printf 'FAIL %-40s\n' "$DTS"; head -6 "$TMP/cpp.log" "$TMP/dtc.log" | sed 's/^/     /'; rc=1
+  fi
+done
+exit $rc

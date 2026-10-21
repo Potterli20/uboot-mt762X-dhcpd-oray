@@ -1,0 +1,97 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * OrayBox R300A-4151G — 自动派生，未上机验证
+ *
+ * 证据来源: 内核 DTB 直读（oraybox-r300a-4151g-6.5.4-sysupgrade-stable-v1.0-20240130.bin）
+ *   SoC      : MT7628AN (MIPS 24Kc)  RAM 128MB
+ *   console  : console=ttyS0,115200
+ *   MAC      : partition@4 分区偏移 0x9
+ *   按键/LED : hc:blue:red=gpio0/2, hc:blue:green=gpio0/0, hc:blue:blue=gpio0/3, hc:blue:wifi=gpio1/12, hc:blue:signal3=gpio0/4, hc:blue:signal2=gpio0/5, hc:blue:signal1=gpio1/5, reset=gpio1/6, wps=gpio1/14
+ *
+ * 用法见 oraybox/mt7628/README.md；改动分区表前先跑 check-dts.sh 校验。
+ */
+
+/dts-v1/;
+
+#include "mt7628a.dtsi"
+
+/ {
+	compatible = "oraybox,r300a-4151g", "ralink,mt7628a-soc";
+	model = "OrayBox R300A-4151G";
+
+	aliases {
+		serial0 = &uart0;
+		spi0 = &spi0;
+	};
+
+	chosen {
+		stdout-path = &uart0;
+	};
+};
+
+&pinctrl {
+	state_default: pin_state {
+		pleds {
+			groups = "p0led", "p1led", "p2led", "p3led", "p4led";
+			function = "led";
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+	num-cs = <1>;
+
+	spi-flash@0 {
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <25000000>;
+		reg = <0>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;  /* 只读 */
+			};
+
+			partition@30000 {
+				label = "u-boot-env";
+				reg = <0x30000 0x10000>;
+			};
+
+			partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;  /* 只读 */
+			};
+
+			partition@50000 {
+				label = "firmware";
+				reg = <0x50000 0xf90000>;
+			};
+
+			partition@fe0000 {
+				label = "bdinfo";
+				reg = <0xfe0000 0x10000>;
+			};
+
+			partition@ff0000 {
+				label = "reserve";
+				reg = <0xff0000 0x10000>;
+			};
+		};
+	};
+};
+
+&eth {
+	mediatek,wan-port = <0>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy_router_mode>;
+};

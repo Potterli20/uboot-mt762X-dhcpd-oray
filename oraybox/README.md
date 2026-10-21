@@ -10,7 +10,7 @@ Board-level data, unpacking tools and an MT7628 port recipe, all derived from th
 | SoC | 型号数 | 现状 |
 |---|---|---|
 | MT7621 | 19 | `configs-mt7621/` 已出 19 份 defconfig，可直接喂 [uboot-mt7621-dhcpd](https://github.com/Yuzhii0718/uboot-mt7621-dhcpd) |
-| MT7628 | 14 | 与 MT7621 仓库无关，需 mainline `mach-mtmips`；X4C 配方见 `oraybox/mt7628/` |
+| MT7628 | 14 | 与 MT7621 仓库无关，需 mainline `mach-mtmips`；14 块板的 board dts + defconfig 见 `oraybox/mt7628/boards/`，X4C 手工版在 `oraybox/mt7628/oraybox-x4c/` |
 | MT7620 | 10 | 待做（mainline v2023.01 起有 mt7620 支持） |
 | x86_64 | 7 | G100Pro / V1000 / V2000 等软路由，不涉及 u-boot |
 | ARM64 | 2 | G300-42120 = RK3568、X5PRO-1258 = ARM64 OrayOS FIT，均与 MTK u-boot 无关 |
@@ -36,6 +36,20 @@ oraybox/mt7628/oraybox-x4c/check-dts.sh  cpp+dtc 把 X4C 的 dts 编成 DTB，�
 
 仓库根就是 MTK U-Boot v2018.09（fork 自 [Yuzhii0718/uboot-mt7621-dhcpd](https://github.com/Yuzhii0718/uboot-mt7621-dhcpd)
 / [DragonBluep/uboot-mt7621](https://github.com/DragonBluep/uboot-mt7621)），许可证见 `Licenses/gpl-2.0.txt`。
+
+## MT7628 / MT7620 用法
+
+`oraybox/tools/gen-7628-dts.py` 从解包出的内核 DTB 派生 mainline 的 board dts（分区表、复位键/LED、
+MAC 来源、console），没有 DTB 的老固件板按同 SoC/同型号前缀找供体，文件头写明来源与"未实测"。
+派生完用 `check-dts.sh` 编译校验（依赖 mainline 的 `mt7628a.dtsi` 与 dt-bindings，可走镜像或 `UBOOT_SRC`）：
+
+```bash
+python3 oraybox/tools/gen-7628-dts.py
+bash oraybox/mt7628/oraybox-x4c/check-dts.sh      # 默认校验 X4C + boards/ 下全部
+```
+
+当前 15 份 dts 全部能编成 DTB。这些文件只保证"语法与 label 正确 + 分区表来自固件"，
+刷之前仍需实测（尤其 8 块靠供体继承的老内核板，DT 里根本没有它们的按键定义）。
 
 ## MT7621 用法
 

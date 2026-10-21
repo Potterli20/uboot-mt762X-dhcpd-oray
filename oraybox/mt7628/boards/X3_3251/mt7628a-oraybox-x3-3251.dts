@@ -1,0 +1,97 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * OrayBox X3-3251 — 自动派生，未上机验证
+ *
+ * 证据来源: 内核 DTB 直读（oraybox-x3-3251-5.7.0-sysupgrade-stable-flash-V1.0_20230316.bin）
+ *   SoC      : MT7628AN (MIPS 24Kc)  RAM 128MB
+ *   console  : console=ttyS0,115200
+ *   MAC      : partition@fe0000 分区偏移 0x9
+ *   按键/LED : reset=gpio1/6, hc:green:internet=gpio1/5, hc:green:wifi=gpio0/1, hc:green:status=gpio1/12
+ *
+ * 用法见 oraybox/mt7628/README.md；改动分区表前先跑 check-dts.sh 校验。
+ */
+
+/dts-v1/;
+
+#include "mt7628a.dtsi"
+
+/ {
+	compatible = "oraybox,x3-3251", "ralink,mt7628a-soc";
+	model = "OrayBox X3-3251";
+
+	aliases {
+		serial0 = &uart0;
+		spi0 = &spi0;
+	};
+
+	chosen {
+		stdout-path = &uart0;
+	};
+};
+
+&pinctrl {
+	state_default: pin_state {
+		pleds {
+			groups = "p0led", "p1led", "p2led", "p3led", "p4led";
+			function = "led";
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+	num-cs = <1>;
+
+	spi-flash@0 {
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <25000000>;
+		reg = <0>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;  /* 只读 */
+			};
+
+			partition@30000 {
+				label = "kpanic";
+				reg = <0x30000 0x10000>;
+			};
+
+			partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;  /* 只读 */
+			};
+
+			partition@50000 {
+				label = "firmware";
+				reg = <0x50000 0xf90000>;
+			};
+
+			partition@fe0000 {
+				label = "bdinfo";
+				reg = <0xfe0000 0x10000>;
+			};
+
+			partition@ff0000 {
+				label = "reserve";
+				reg = <0xff0000 0x10000>;
+			};
+		};
+	};
+};
+
+&eth {
+	mediatek,wan-port = <0>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy_router_mode>;
+};
