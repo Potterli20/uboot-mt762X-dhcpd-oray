@@ -8,11 +8,14 @@
 --sysled-pin 6
 # oraybox:green:status -> bank@0 a7
 --sysled2-pin 7
-# cpufreq 依据: MT7621A 标称默认（已验证 5 块板 DTB cpuclock=880MHz），未逐一实测
+# cpufreq: MT7621A 880MHz（同系 5 块板 DTB cpuclock 实测 880MHz）
+# ram: 贝锐蒲公英云 AP-A20 拆解：主板 MT7621 + 256MB 运存（https://m.blog.csdn.net/avengersoap/article/details/132021176）；固件侧无证据（内核 DTB 无 memory 节点、板名无 -S/-N 后缀）
+# ddr: MT7621 + 256MB → DDR3-256MiB；颗粒未拆机确认
+# cpufreq 依据: MT7621A 880MHz（同系 5 块板 DTB cpuclock 实测 880MHz）
 --cpufreq 880
 # ramfreq 依据: 仓库 Kconfig 默认 1200 MT/s（原厂 blob 未匹到频率立即数，DDR3 常用档）
 --ramfreq 1200
---ddrparam TODO
+--ddrparam DDR3-256MiB
 --oldparam false
 --baudrate 115200
 --yes

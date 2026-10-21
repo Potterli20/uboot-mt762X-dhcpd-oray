@@ -15,15 +15,23 @@
     "sysled2_pin": 15
   },
   "X4C/1141G": {
-    "ram_mb": 128,
-    "ram_evidence": "同系 X4C-3131G 内核 DTB memory=128MB（MT7628AN）",
+    "ram_mb": 64,
+    "ram_evidence": "官方 X4C 规格：MT7628NN 580MHz / RAM 64MB / Flash 16MB（https://m.blog.csdn.net/oray2013/article/details/105664238）；注意 X4C-3131G 的内核 DTB 是 128MB，两版硬件不同",
     "cpufreq": 580,
-    "cpufreq_evidence": "MT7628AN 580MHz；注意 MT7628 走 mainline，不吃 uboot-mt7621 的 --cpufreq"
+    "cpufreq_evidence": "MT7628NN 580MHz"
   },
   "X4C/3131G": {
     "ram_mb": 128,
     "ram_evidence": "内核 DTB memory reg 0x8000000",
     "cpufreq": 580,
     "cpufreq_evidence": "MT7628AN 580MHz"
+  },
+  "A20/1226": {
+    "ram_mb": 256,
+    "ram_evidence": "贝锐蒲公英云 AP-A20 拆解：主板 MT7621 + 256MB 运存（https://m.blog.csdn.net/avengersoap/article/details/132021176）；固件侧无证据（内核 DTB 无 memory 节点、板名无 -S/-N 后缀）",
+    "ddrparam": "DDR3-256MiB",
+    "ddr_evidence": "MT7621 + 256MB → DDR3-256MiB；颗粒未拆机确认",
+    "cpufreq": 880,
+    "cpufreq_evidence": "MT7621A 880MHz（同系 5 块板 DTB cpuclock 实测 880MHz）"
   }
 }
