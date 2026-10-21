@@ -72,7 +72,7 @@ jobs:
 
       - name: 安装板级 dts 与 defconfig
         run: |
-          d=oraybox/mt7628/boards/${{ matrix.board }}
+          d=oray/oraybox/mt7628/boards/${{ matrix.board }}   # checkout 用了 path: oray
           cp "$d"/*.dts u-boot/arch/mips/dts/
           cp "$d"/*_defconfig u-boot/configs/
           echo "DEFCONFIG=$(basename $(ls "$d"/*_defconfig) .defconfig)" >> "$GITHUB_ENV"
@@ -81,19 +81,22 @@ jobs:
       - name: 配置（记录 unknown symbol）
         working-directory: u-boot
         run: |
+          set -o pipefail
           make O=build CROSS_COMPILE=mipsel-linux-gnu- "$DEFCONFIG" 2>&1 | tee /tmp/cfg.log
           if grep -qi "unknown symbol" /tmp/cfg.log; then
             echo "::warning::defconfig 里有该 u-boot 版本不认识的符号，见 summary"
             { echo "### ${{ matrix.board }} unknown symbol"; grep -i "unknown symbol" /tmp/cfg.log; } >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: 先编 DTB（不需要交叉编译器，早暴露 dts 问题）
-        working-directory: u-boot
-        run: make O=build CROSS_COMPILE=mipsel-linux-gnu- dtbs 2>&1 | tail -20
+      - name: DTS 预校验（纯 cpp+dtc，比 make dtbs 早暴露问题；dtbs 依赖 u-boot 目标）
+        run: |
+          UBOOT_REF="${{ inputs.uboot_ref }}" UBOOT_SRC="$GITHUB_WORKSPACE/u-boot" \
+            bash oray/oraybox/mt7628/oraybox-x4c/check-dts.sh oray/oraybox/mt7628/boards/${{ matrix.board }}/*.dts
 
       - name: Build u-boot-with-spl.bin
         working-directory: u-boot
         run: |
+          set -o pipefail
           make O=build CROSS_COMPILE=mipsel-linux-gnu- -j"$(nproc)" 2>&1 | tail -30
           ls -l build/u-boot-with-spl.bin
           cp build/u-boot-with-spl.bin "$GITHUB_WORKSPACE/${{ matrix.board }}-u-boot-with-spl.bin"
