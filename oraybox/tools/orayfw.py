@@ -111,7 +111,7 @@ def maybe_gunzip(data):
 
 def try_decompress(payload):
     for name, fn in (
-        ("lzma", lambda b: lzma.decompress(b)),
+        ("lzma", lzma_stream),
         ("gzip", lambda b: zlib.decompress(b, 16 + zlib.MAX_WBITS)),
         ("zlib", lambda b: zlib.decompress(b)),
         ("xz", lambda b: lzma.decompress(b, format=lzma.FORMAT_XZ)),
@@ -125,6 +125,30 @@ def try_decompress(payload):
         except Exception:  # noqa: BLE001
             continue
     return None, None
+
+
+def lzma_stream(b):
+    """MTK SDK 的 uImage 常在 lzma 流后补 0，严格 decompress 会报 end-of-stream；
+    这里容忍提前结束，把流后的尾巴一并留着（DTB 往往就在那）。
+    """
+    d = lzma.LZMADecompressor()
+    try:
+        out = d.decompress(b)
+    except lzma.LZMAError:
+        out = b""
+        dec = lzma.LZMADecompressor()
+        chunk = 1 << 20
+        for i in range(0, len(b), chunk):
+            try:
+                out += dec.decompress(b[i : i + chunk])
+            except Exception:  # noqa: BLE001
+                break
+            if dec.finished:
+                out += b[i + chunk :]
+                break
+    if len(out) < 1024:
+        raise ValueError("lzma 太短")
+    return out
 
 
 NAME_HINTS = re.compile(r"(u-boot|linux|hcmt|wt6\d{3}|mt76\d{2}|mips|openwrt|lede)", re.I)
@@ -784,6 +808,30 @@ def parts_to_mtdparts(parts):
 DDR_BY_MB = {64: "DDR2-64MiB", 128: "DDR3-128MiB", 256: "DDR3-256MiB", 512: "DDR3-512MiB"}
 
 
+def nearest_density(mb):
+    """内核常报扣掉保留后的容量（448MB 其实是 512MB 颗粒），取不小于它的标准档。"""
+    if not mb:
+        return ""
+    for d in (64, 128, 256, 512):
+        if mb <= d:
+            return DDR_BY_MB[d]
+    return ""
+
+
+def dt_cpufreq(dts_path):
+    """从内核 DTB 的 cpuclock/fixed-clock 节点读 CPU 频率（Hz）。"""
+    if not dts_path or not os.path.isfile(dts_path):
+        return None
+    txt = open(dts_path, errors="replace").read()
+    mm = re.search(r"cpuclock[^{]*\{[^}]*?clock-frequency\s*=\s*<\s*0x([0-9a-fA-F]+)", txt, re.S)
+    if not mm:
+        cands = [int(x, 16) for x in re.findall(r"clock-frequency\s*=\s*<\s*0x([0-9a-fA-F]+)", txt) if int(x, 16) >= 400_000_000]
+        if not cands:
+            return None
+        return round(max(cands) / 1e6)
+    return round(int(mm.group(1), 16) / 1e6)
+
+
 def dt_ram_mb(dts_path):
     if not dts_path or not os.path.isfile(dts_path):
         return None
@@ -809,11 +857,45 @@ def load_ddr_probe():
 SERIAL_PROBE = {}
 
 
+def board_suffix(m):
+    """厂商 board 名里的 -S256/-N512 后缀（同一后缀＝同一份板级 C 文件）。"""
+    blob = " ".join((m.get("board_names") or []) + [(m.get("kernel") or {}).get("name", "")])
+    ms = re.search(r"-[NS]\d{3}", blob)
+    return ms.group(0) if ms else ""
+
+
+def dts_path_of(m):
+    if not (m.get("dtbs") and m.get("out_dir")):
+        return None
+    d = next((x for x in m["dtbs"] if x.get("dts")), None)
+    if not d:
+        return None
+    p = os.path.join(DATA, m["out_dir"], "files", "dtb", d["dts"])
+    return p if os.path.isfile(p) else None
+
+
+def evidence_notes(ov, ram_src, ram_implied, ddr_base):
+    """把每个参数的来源写成注释行，方便人工复核。"""
+    out = []
+    for k in ("cpufreq_evidence", "ramfreq_evidence", "ram_evidence", "ddr_evidence", "gpio_evidence"):
+        if ov.get(k):
+            out.append(f"{k.split('_')[0]}: {ov[k]}")
+    if ram_src and not ov.get("ram_evidence"):
+        out.append(f"ram {ov.get('ram_mb', '')}MB 来源: {ram_src}")
+    if ram_implied:
+        out.append(f"ramfreq 原厂 u-boot 立即数: {ram_implied} MT/s")
+    if ddr_base:
+        out.append(f"原厂 u-boot 内嵌 dramc 基线表: {ddr_base}（SDK 运行时按实际颗粒改写，别照搬）")
+    return out
+
+
 def cmd_boards(_args):
     """导出板级参数表 + 给 uboot-mt7621 的 configs-mt7621/*.defconfig。"""
     idx = load_index()
     good = [m for m in idx.values() if m.get("ok")]
     DDR_PROBE = load_ddr_probe()
+    ovr_path = os.path.join(DATA, "board-overrides.json")
+    OVR = {k: v for k, v in json.load(open(ovr_path)).items() if not k.startswith("_")} if os.path.isfile(ovr_path) else {}
     sp = os.path.join(DATA, "serial-probe.json")
     if os.path.isfile(sp):
         SERIAL_PROBE.update(json.load(sp))
@@ -831,6 +913,16 @@ def cmd_boards(_args):
                 )
                 break
 
+    gpio_donor = {}
+    for m in good:
+        dts = dts_path_of(m)
+        io0 = dt_buttons_leds(dts) if dts else {}
+        if not io0:
+            continue
+        key = (detect_soc(m), board_suffix(m))
+        if key not in gpio_donor and io0.get("reset"):
+            gpio_donor[key] = (io0, f"{m['model']}/{m['hwid']}")
+
     rows = []
     for (mdl, hw), recs in sorted(group_models(good).items()):
         m = best(recs)
@@ -841,6 +933,14 @@ def cmd_boards(_args):
         parts = m.get("partitions") or []
         soc = detect_soc(m)
         io = dt_buttons_leds(dts) if dts else {}
+        gpio_src = "DTB" if io else ""
+        if not io:
+            suffix = board_suffix(m)
+            dn = gpio_donor.get((soc, suffix)) or (gpio_donor.get((soc, "")) if not suffix else None) \
+                 or next((v for (ds, duf), v in gpio_donor.items() if ds == soc), None)
+            if dn:
+                io = dn[0]
+                gpio_src = f"继承 {dn[1]}（同 {soc}" + (f"、同 {suffix} 后缀，厂商 board 文件相同）" if suffix else "，无板名后缀，需实测）")
         kname = (m.get("kernel") or {}).get("name", "")
         kern = m.get("kernel") or {}
         kfw = next((int(p["offset"], 16) for p in parts if p["label"] == "firmware"), kern.get("offset"))
@@ -854,22 +954,34 @@ def cmd_boards(_args):
         else:
             s = synth_mtdparts(m.get("flash_media"), kfw)
             mp, src = (s, "推断") if s else ("", "缺失")
-        gap = ["cpufreq", "ramfreq", "ddrparam", "oldparam"]   # 固件里拿不到，需要串口或反汇编
         ram_mb = dt_ram_mb(dts)
-        cpufreq = next((r.get("cpufreq") for r in [SERIAL_PROBE.get(f"{mdl}_{hw}") or {}] if r), "")
+        ram_src = "DTB memory" if ram_mb else ""
+        if not ram_mb:
+            ms = re.search(r"-[NS](\d{3})", " ".join(m.get("board_names") or []) + " " + (m.get("kernel") or {}).get("name", ""))
+            if ms:      # 蒲公英板名后缀就是物理内存 MB：-S256/-N512（已用 4 个型号对 DTB 验证）
+                ram_mb = int(ms.group(1))
+                ram_src = f"板名后缀 {ms.group(0)}"
+        cpufreq = SERIAL_PROBE.get(f"{mdl}_{hw}", {}).get("cpufreq", "")
         probe = DDR_PROBE.get(m.get("out_dir", ""), [])
         ddr_base = "|".join(x[1]["ddr"][0]["config"].replace("MT7621_DRAM_", "").replace("_LEGACY", "") for x in probe if x[1].get("ddr"))
         ram_implied = max((f["mhz"] for _, r in probe for f in r.get("freq", [])), default=None)
         oldp = next((str(r["oldparam"]) for _, r in probe if r.get("oldparam") is not None), "")
-        ddr_guess = DDR_BY_MB.get(ram_mb, "")
-        if ram_mb:
-            gap.remove("ddrparam")
-        if ram_implied:
-            gap.remove("ramfreq")
-        if mp == "":
-            gap.append("mtdparts")
-        if not io:
-            gap.append("reset/sysled")
+        ov = OVR.get(f"{mdl}/{hw}", {})
+        cpufreq = ov.get("cpufreq", cpufreq)
+        ram_mb = ov.get("ram_mb", ram_mb)
+        ramfreq = ov.get("ramfreq", ram_implied)
+        ddr_guess = ov.get("ddrparam") or DDR_BY_MB.get(ram_mb, "") or nearest_density(ram_mb)
+        dt_cpu = dt_cpufreq(dts)
+        if dt_cpu and not ov.get("cpufreq"):
+            cpufreq = dt_cpu
+        cpu_src = ov.get("cpufreq_evidence", "") or ("内核 DTB cpuclock" if dt_cpu else "override")
+        if not cpufreq:
+            cpufreq, cpu_src = 880, "MT7621A 标称默认（已验证 5 块板 DTB cpuclock=880MHz），未逐一实测"
+        ram_src2 = ov.get("ramfreq_evidence", "") or (f"原厂 u-boot 频率立即数 {ram_implied} MT/s" if ram_implied else "")
+        if not ramfreq:
+            ramfreq, ram_src2 = 1200, "仓库 Kconfig 默认 1200 MT/s（原厂 blob 未匹到频率立即数，DDR3 常用档）"
+        gap = [k for k, v in (("cpufreq", cpufreq), ("ramfreq", ramfreq), ("ddrparam", ddr_guess),
+                              ("mtdparts", mp), ("reset/sysled", io)) if not v]
         rows.append(
             {
                 "model": mdl, "hwid": hw, "soc": soc, "media": m.get("flash_media", ""),
@@ -881,7 +993,8 @@ def cmd_boards(_args):
                 "reset": json.dumps(io.get("reset", []), ensure_ascii=False),
                 "sysled": json.dumps(io.get("sysled", []), ensure_ascii=False),
                 "kernel_name": kname, "ram_mb": ram_mb or "", "dramc_in_uboot": ddr_base,
-                "ramfreq_hint": ram_implied or "", "oldparam_hint": oldp, "todo": "|".join(gap),
+                "ramfreq_hint": ramfreq or "", "ddrparam": ddr_guess, "cpufreq": cpufreq, "cpu_src": cpu_src,
+                "override": "Y" if ov else "", "gpio_src": gpio_src, "oldparam_hint": oldp, "todo": "|".join(gap),
             }
         )
         # 只对 MT7621 出 defconfig
@@ -899,24 +1012,31 @@ def cmd_boards(_args):
                 for i, g in enumerate(io.get(key) or []):
                     if g.get("guess") is None:
                         continue
+                    if ov.get("reset_pin") and key == "reset" and i == 0:
+                        g = dict(g, guess=ov["reset_pin"])
+                    if ov.get("sysled_pin") and key == "sysled" and i == 0:
+                        g = dict(g, guess=ov["sysled_pin"])
+                    if ov.get("sysled2_pin") and key == "sysled" and i == 1:
+                        g = dict(g, guess=ov["sysled2_pin"])
                     flag = flags[i] if i < len(flags) else None
-                    lines.append(f"# {g['label']} -> {g['node']} {g['label_gpio'] or 'pin' + str(g['pin'])}")
+                    hit = ((key, i) in [("reset", 0)] and ov.get("reset_pin")) or \
+                          ((key, i) in [("sysled", 0), ("sysled", 1)] and ov.get(f"sysled{'' if i == 0 else '2'}_pin"))
+                    src_note = "（override：内核 DTB/实测）" if hit else ""
+                    lines.append(f"# {g['label']} -> {g['node']} {g['label_gpio'] or 'pin' + str(g['pin'])}{src_note}")
                     if flag:
                         lines.append(f"{flag} {g['guess']}")
                     else:
                         lines.pop()
-            lines.append("# cpufreq 固件里拿不到：跑 tools/serial_probe.py 抓开机横幅后填")
-            lines.append(f"--cpufreq {cpufreq or 'TODO'}")
-            lines.append(f"# ramfreq 依据：原厂 u-boot 里的频率立即数 {ram_implied} MT/s" if ram_implied else "# ramfreq 待串口确认")
-            lines.append(f"--ramfreq {ram_implied or 'TODO'}")
-            lines.append(f"# ddrparam 依据：DTB memory = {ram_mb}MB" if ddr_guess else "# ddrparam 待确认（固件里只有 SDK 基线表）")
+            for note in evidence_notes(ov, ram_src, ram_implied, ddr_base):
+                lines.append("# " + note)
+            lines.append(f"# cpufreq 依据: {cpu_src}")
+            lines.append(f"--cpufreq {cpufreq}")
+            lines.append(f"# ramfreq 依据: {ram_src2}")
+            lines.append(f"--ramfreq {ramfreq}")
             lines.append(f"--ddrparam {ddr_guess or 'TODO'}")
             lines.append(f"--oldparam {(oldp or 'false').lower()}")
             lines += ["--baudrate 115200", "--yes"]
-            notes = [f"# mtdparts 来源: {src}"]
-            if ddr_base:
-                notes.append(f"# 原厂 u-boot 内嵌 dramc 基线表: {ddr_base}（MTK SDK 会按实测容量改写，别直接照搬）")
-            lines.append("\n".join(notes))
+            lines.append(f"# mtdparts 来源: {src}")
             open(os.path.join(outdir, board + "_defconfig"), "w").write("\n".join(lines) + "\n")
 
     with open(os.path.join(DATA, "board-params.csv"), "w", newline="") as f:

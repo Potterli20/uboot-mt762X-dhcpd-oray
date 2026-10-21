@@ -1,0 +1,29 @@
+{
+  "_说明": "手工核对的板级值，cmd_boards 会覆盖自动推断结果；每条都带 evidence，没把握的宁可不写",
+  "X3A/1233": {
+    "cpufreq": 880,
+    "cpufreq_evidence": "MT7621A 双核 880MHz（ZOL 参数页：运行内存128MB/16MB Flash/双核；同系 ORH-260 内核 DTB cpuclock=0x3473bc00≈880MHz）",
+    "ramfreq": 1200,
+    "ramfreq_evidence": "原厂 U-Boot 2018.11 二进制里的 DDR_FREQ 立即数 lui 0x11000000",
+    "ram_mb": 128,
+    "ram_evidence": "官方参数页 128MB；内核 DTB 无 memory 节点（u-boot 运行时回填）",
+    "ddrparam": "DDR3-128MiB",
+    "ddr_evidence": "MT7621 + 128MB → DDR3-128MiB；颗粒型号未拆机确认",
+    "reset_pin": 18,
+    "sysled_pin": 13,
+    "gpio_evidence": "内核 DTB(oraybox,x3): reset=18 red=13 green=15 blue=14, console=ttyS0；与 X5-6256/ORH-260 的 reset a18 一致。原厂 u-boot DTB 把 reset 写成 13（实为红灯），不采信。build.sh 只有两个 LED 槽位，blue=14 未写入",
+    "sysled2_pin": 15
+  },
+  "X4C/1141G": {
+    "ram_mb": 128,
+    "ram_evidence": "同系 X4C-3131G 内核 DTB memory=128MB（MT7628AN）",
+    "cpufreq": 580,
+    "cpufreq_evidence": "MT7628AN 580MHz；注意 MT7628 走 mainline，不吃 uboot-mt7621 的 --cpufreq"
+  },
+  "X4C/3131G": {
+    "ram_mb": 128,
+    "ram_evidence": "内核 DTB memory reg 0x8000000",
+    "cpufreq": 580,
+    "cpufreq_evidence": "MT7628AN 580MHz"
+  }
+}

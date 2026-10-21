@@ -2,14 +2,18 @@
 --mtdparts "192k(u-boot),64k(kpanic),64k(factory),-(firmware)"
 --model "OrayBox_X6-1293P"
 --kernel-offset 0x50000
-# cpufreq 固件里拿不到：跑 tools/serial_probe.py 抓开机横幅后填
---cpufreq TODO
-# ramfreq 待串口确认
---ramfreq TODO
-# ddrparam 待确认（固件里只有 SDK 基线表）
---ddrparam TODO
+# reset -> bank@0 a18
+--reset-pin 18
+# hc:blue:status -> bank@0 a7
+--sysled-pin 7
+# ram MB 来源: 板名后缀 -S512
+# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（SDK 运行时按实际颗粒改写，别照搬）
+# cpufreq 依据: MT7621A 标称默认（已验证 5 块板 DTB cpuclock=880MHz），未逐一实测
+--cpufreq 880
+# ramfreq 依据: 仓库 Kconfig 默认 1200 MT/s（原厂 blob 未匹到频率立即数，DDR3 常用档）
+--ramfreq 1200
+--ddrparam DDR3-512MiB
 --oldparam false
 --baudrate 115200
 --yes
 # mtdparts 来源: 继承 ORH/260
-# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（MTK SDK 会按实测容量改写，别直接照搬）

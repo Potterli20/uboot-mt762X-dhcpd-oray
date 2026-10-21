@@ -2,20 +2,25 @@
 --mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),-(firmware)"
 --model "OrayBox_X3A-1233"
 --kernel-offset 0x50000
-# reset -> gpio@0x1e000600 a13
---reset-pin 13
-# red -> gpio@0x1e000600 a5
---sysled-pin 5
-# green -> gpio@0x1e000600 a9
---sysled2-pin 9
-# cpufreq 固件里拿不到：跑 tools/serial_probe.py 抓开机横幅后填
---cpufreq TODO
-# ramfreq 依据：原厂 u-boot 里的频率立即数 1200 MT/s
+# reset -> gpio@0x1e000600 a13（override：内核 DTB/实测）
+--reset-pin 18
+# red -> gpio@0x1e000600 a5（override：内核 DTB/实测）
+--sysled-pin 13
+# green -> gpio@0x1e000600 a9（override：内核 DTB/实测）
+--sysled2-pin 15
+# cpufreq: MT7621A 双核 880MHz（ZOL 参数页：运行内存128MB/16MB Flash/双核；同系 ORH-260 内核 DTB cpuclock=0x3473bc00≈880MHz）
+# ramfreq: 原厂 U-Boot 2018.11 二进制里的 DDR_FREQ 立即数 lui 0x11000000
+# ram: 官方参数页 128MB；内核 DTB 无 memory 节点（u-boot 运行时回填）
+# ddr: MT7621 + 128MB → DDR3-128MiB；颗粒型号未拆机确认
+# gpio: 内核 DTB(oraybox,x3): reset=18 red=13 green=15 blue=14, console=ttyS0；与 X5-6256/ORH-260 的 reset a18 一致。原厂 u-boot DTB 把 reset 写成 13（实为红灯），不采信。build.sh 只有两个 LED 槽位，blue=14 未写入
+# ramfreq 原厂 u-boot 立即数: 1200 MT/s
+# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（SDK 运行时按实际颗粒改写，别照搬）
+# cpufreq 依据: MT7621A 双核 880MHz（ZOL 参数页：运行内存128MB/16MB Flash/双核；同系 ORH-260 内核 DTB cpuclock=0x3473bc00≈880MHz）
+--cpufreq 880
+# ramfreq 依据: 原厂 U-Boot 2018.11 二进制里的 DDR_FREQ 立即数 lui 0x11000000
 --ramfreq 1200
-# ddrparam 待确认（固件里只有 SDK 基线表）
---ddrparam TODO
+--ddrparam DDR3-128MiB
 --oldparam false
 --baudrate 115200
 --yes
 # mtdparts 来源: u-boot 内嵌默认值
-# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（MTK SDK 会按实测容量改写，别直接照搬）
