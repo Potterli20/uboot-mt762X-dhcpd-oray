@@ -23,7 +23,7 @@ jobs:
       - name: 板目录结构断言（一目录一份 dts/defconfig，且 dts 名 == DEFAULT_DEVICE_TREE）
         run: |
           bad=0
-          for d in oraybox/mt7628/oraybox-x4c oraybox/mt7628/boards/*/ oraybox/mt7620/boards/*/; do
+          for d in oraybox/mt7628/oraybox-x4c/ oraybox/mt7628/boards/*/ oraybox/mt7620/boards/*/; do
             nd=$(ls "$d"*.dts 2>/dev/null | wc -l); nc=$(ls "$d"*_defconfig 2>/dev/null | wc -l)
             if [ "$nd" != 1 ] || [ "$nc" != 1 ]; then
               echo "::error::$d 应该有且只有 1 份 dts + 1 份 defconfig（实际 dts=$nd defconfig=$nc）"; bad=1; continue
