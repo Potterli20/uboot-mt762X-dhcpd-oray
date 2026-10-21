@@ -49,8 +49,6 @@
 	num-cs = <1>;
 
 	spi-flash@0 {
-		#address-cells = <1>;
-		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		spi-max-frequency = <25000000>;
 		reg = <0>;

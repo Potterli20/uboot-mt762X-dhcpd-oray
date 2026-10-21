@@ -17,6 +17,20 @@ if [ ! -d "$WORK/u-boot" ]; then
     || git clone --depth 1 --branch "$UBOOT_TAG" "$MIRROR_FALLBACK" "$WORK/u-boot"
 fi
 
+step "先离线校验板级 DTS 能否编成 DTB（有 dtc 就做，省得编到一半才报错）"
+if command -v dtc >/dev/null; then
+  tmp=$(mktemp -d)
+  cp -a "$WORK/u-boot/arch/mips/dts/." "$tmp/" 2>/dev/null || true
+  cp -a "$WORK/u-boot/include/dt-bindings" "$tmp/include" 2>/dev/null || mkdir -p "$tmp/include"
+  cp "$HERE/mt7628a-oraybox-x4c.dts" "$tmp/"
+  ( cd "$tmp" && cpp -nostdinc -I. -Iinclude -D__DTS__ -x assembler-with-cpp \
+      mt7628a-oraybox-x4c.dts -o pp.dts && dtc -I dts -O dtb -o out.dtb pp.dts ) \
+    && echo "DTB 校验通过" || echo "!! DTS 校验失败，请检查 &label 引用是否存在于 mt7628a.dtsi"
+  rm -rf "$tmp"
+else
+  echo "(没装 dtc，跳过 DTS 预校验)"
+fi
+
 cd "$WORK/u-boot"
 step "放入 X4C 板级文件"
 cp "$HERE/mt7628a-oraybox-x4c.dts" arch/mips/dts/

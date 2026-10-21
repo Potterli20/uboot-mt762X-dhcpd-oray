@@ -1,0 +1,27 @@
+name: Check OrayBox board files
+
+on:
+  push:
+    paths:
+      - "configs-mt7621/oray_*"
+      - "oraybox/tools/check-boards.sh"
+      - "build.sh"
+      - "customize.sh"
+  pull_request:
+    paths:
+      - "configs-mt7621/oray_*"
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: build.sh 解析与校验（不编译）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 跑 oraybox/tools/check-boards.sh
+        run: bash oraybox/tools/check-boards.sh "$(pwd)"
+
+      - name: 校验 X4C 的板级 DTS 能编成 DTB
+        run: |
+          sudo apt-get update && sudo apt-get install -y device-tree-compiler
+          bash oraybox/mt7628/oraybox-x4c/check-dts.sh   # 依赖从 mainline 镜像拉 mt7628a.dtsi + dt-bindings
