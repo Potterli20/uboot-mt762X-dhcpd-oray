@@ -19,6 +19,8 @@ A20-1226 与 X5-7256 是新解析出来的 MT7621（前者靠 FIT 内 DTB、后�
 这两块板的 `--ddrparam` 还缺实测（DTB 里没有 memory 节点、板名也没 `-Sxxx/-Nxxx` 后缀），
 批量 workflow 会自动跳过含 TODO 的板子并在 summary 里列出。
 
+改板级文件会触发 `check-boards.yml`（跑上面两个校验，不编译），批量出包用 `build-oraybox-all.yml`。
+
 ## 目录 / layout
 
 ```
@@ -28,6 +30,8 @@ oraybox/tools/orayfw.py         固件解包与索引（list / unpack / summary 
 oraybox/tools/dramid.py         用 dramc-legacy 表匹配原厂 u-boot，反推 DDR 参数
 oraybox/tools/serial_probe.py   抓串口开机横幅，补 cpufreq / ramfreq / ddrparam
 oraybox/data/                   board-params.csv、SUMMARY.md、index.csv、ddr-probe.json、dts/
+oraybox/tools/check-boards.sh      stub 掉 customize.sh 后跑真实 build.sh 解析+validate（不编译）
+oraybox/mt7628/oraybox-x4c/check-dts.sh  cpp+dtc 把 X4C 的 dts 编成 DTB，验证 &label 引用
 ```
 
 仓库根就是 MTK U-Boot v2018.09（fork 自 [Yuzhii0718/uboot-mt7621-dhcpd](https://github.com/Yuzhii0718/uboot-mt7621-dhcpd)
