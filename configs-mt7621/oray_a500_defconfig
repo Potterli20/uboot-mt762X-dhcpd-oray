@@ -10,8 +10,8 @@
 # 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（SDK 运行时按实际颗粒改写，别照搬）
 # cpufreq 依据: 内核 DTB cpuclock
 --cpufreq 880
-# ramfreq 依据: 仓库 Kconfig 默认 1200 MT/s（原厂 blob 未匹到频率立即数，DDR3 常用档）
---ramfreq 1200
+# ramfreq 依据: 仓库 Kconfig 默认 1200 MT/s（原厂 blob 未匹到频率立即数，DDR3 常用档）；512MiB 颗粒上限 1066 MT/s（customize.sh 会强制降级）
+--ramfreq 1066
 --ddrparam DDR3-512MiB
 --oldparam false
 --baudrate 115200

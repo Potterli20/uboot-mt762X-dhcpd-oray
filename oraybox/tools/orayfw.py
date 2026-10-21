@@ -1247,6 +1247,8 @@ def cmd_boards(_args):
                 lines.append("# " + note)
             lines.append(f"# cpufreq 依据: {cpu_src}")
             lines.append(f"--cpufreq {cpufreq}")
+            if ddr_guess == "DDR3-512MiB" and ramfreq == 1200:
+                ramfreq, ram_src2 = 1066, f"{ram_src2}；512MiB 颗粒上限 1066 MT/s（customize.sh 会强制降级）"
             lines.append(f"# ramfreq 依据: {ram_src2}")
             lines.append(f"--ramfreq {ramfreq}")
             lines.append(f"--ddrparam {ddr_guess or 'TODO'}")

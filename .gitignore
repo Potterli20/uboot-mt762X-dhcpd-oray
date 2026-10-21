@@ -95,3 +95,7 @@ GTAGS
 *~
 \#*#
 configs/mt7621_build_defconfig
+
+# 上游 *.gitignore 里的 .* 会吃掉整个 .github，导致新增 workflow 必须 git add -f
+!.github/
+!.github/**

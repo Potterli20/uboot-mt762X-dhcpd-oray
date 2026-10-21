@@ -156,7 +156,7 @@ DDR3-256MiB)
 	;;
 DDR3-512MiB)
 	echo "CONFIG_MT7621_DRAM_DDR3_4096M_LEGACY=y" >> ${DEFCONFIG}
-	if [ -n $(cat ${DEFCONFIG} | grep MT7621_DRAM_FREQ_1200_LEGACY) ]; then
+	if [ -n "$(cat ${DEFCONFIG} | grep MT7621_DRAM_FREQ_1200_LEGACY)" ]; then   # 上游漏了引号：grep 返回多行时 [ 会报"需要二元运算符"，降级直接不生效
 		echo "The max DRAM speed for 512 MiB RAM is 1066 MT/s"
 		sed -i 's/MT7621_DRAM_FREQ_1200_LEGACY/MT7621_DRAM_FREQ_1066_LEGACY/' ${DEFCONFIG}
 	fi
