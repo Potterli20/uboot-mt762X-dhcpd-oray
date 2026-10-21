@@ -39,7 +39,6 @@ CONFIG_CMD_GPIO=y
 # CONFIG_CMD_LOADS is not set
 CONFIG_CMD_SPI=y
 CONFIG_ENV_IS_IN_SPI_FLASH=y
-CONFIG_ENV_RELOC_GD_ENV_ADDR=y
 CONFIG_NET_RANDOM_ETHADDR=y
 # CONFIG_INPUT is not set
 CONFIG_SPI_FLASH_EON=y
@@ -55,3 +54,18 @@ CONFIG_SPI=y
 CONFIG_MT7621_SPI=y
 CONFIG_LZMA=y
 CONFIG_SPL_LZMA=y
+
+# --- OrayBox X4C 追加项（符号均在 v2024.07 树里校验过：oraybox/tools/check-config.sh）---
+# 恢复路径：mainline 没有原厂 1.1.3 的 failsafe httpd，改用 bootmenu + TFTP/DHCP
+CONFIG_CMD_BOOTMENU=y
+CONFIG_CMD_SF=y
+CONFIG_CMD_MTD=y
+CONFIG_CMD_MTDPARTS=y
+CONFIG_CMD_DHCP=y
+CONFIG_CMD_TFTPBOOT=y
+CONFIG_CMD_PING=y
+CONFIG_LZMA=y
+# 不写死 CONFIG_MTDPARTS_DEFAULT：dm-spi 下的 mtd id 要第一次开机 `mtd list` 才知道，别拿没验证的字符串硬编
+# 启动：mainline 的 SPI 是 dm-spi（没有 0xBF000000 XIP），所以先 sf read 再 bootm
+CONFIG_USE_BOOTCOMMAND=y
+CONFIG_BOOTCOMMAND="sf probe 0 50000000; sf read 0x83000000 0x50000 0x400000; bootm 0x83000000"
