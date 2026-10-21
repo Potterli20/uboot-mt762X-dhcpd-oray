@@ -16,9 +16,14 @@ if [ -n "${UBOOT_SRC:-}" ]; then
 else
   B="https://cdn.jsdelivr.net/gh/u-boot/u-boot@${UBOOT_REF:-master}"
   for f in "${need[@]}"; do
+    # dtsi 平铺到 $TMP（#include "mt7628a.dtsi" 是相对当前文件解析的），头文件保持 include/ 层级
+    case "$f" in
+      arch/mips/dts/*) dest="$TMP/${f##*/}" ;;
+      *)               dest="$TMP/$f"; mkdir -p "$(dirname "$dest")" ;;
+    esac
     ok=0
     for i in 1 2 3 4 5; do
-      curl -sSfL --max-time 40 -o "$TMP/$f" "$B/$f" && { ok=1; break; }
+      curl -sSfL --max-time 40 -o "$dest" "$B/$f" && { ok=1; break; }
       sleep 3
     done
     [ "$ok" = 1 ] || { echo "!! 取不到 $f（jsDelivr 抽风？可用 UBOOT_SRC 指向本地 mainline 树）"; exit 2; }
