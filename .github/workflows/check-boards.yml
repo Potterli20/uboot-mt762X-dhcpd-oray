@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - "configs-mt7621/oray_*"
-      - "oraybox/tools/check-boards.sh"
+      - "oraybox/**"
       - "build.sh"
       - "customize.sh"
+      - ".github/workflows/check-boards.yml"
   pull_request:
     paths:
       - "configs-mt7621/oray_*"
+      - "oraybox/**"
   workflow_dispatch:
 
 jobs:
