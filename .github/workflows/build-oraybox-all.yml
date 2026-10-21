@@ -1,0 +1,125 @@
+name: Build all OrayBox boards
+
+on:
+  workflow_dispatch:
+    inputs:
+      boards:
+        description: '空格分隔的板子名（默认编译 configs-mt7621/oray_*_defconfig 全部）'
+        required: false
+        type: string
+        default: ''
+      pub_release:
+        description: '汇总成一个 GitHub Release（默认只存 artifact，不发 Release）'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  discover:
+    name: Collect board list
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pick
+        run: |
+          if [ -n "${{ inputs.boards }}" ]; then
+            list=$(echo "${{ inputs.boards }}" | tr ' ,' '\n\n')
+          else
+            list=$(ls configs-mt7621/ | sed -n 's/^\(oray_[a-z0-9_.-]*\)_defconfig$/\1/p')
+          fi
+          missing=0
+          for b in $list; do
+            [ -f "configs-mt7621/${b}_defconfig" ] || { echo "::error::找不到 configs-mt7621/${b}_defconfig"; missing=1; }
+          done
+          [ "$missing" = 0 ] || exit 1
+          n=$(echo "$list" | wc -w)
+          echo "要编译 $n 块板：$(echo $list)"
+          matrix=$(for b in $list; do printf '"%s",' "$b"; done)
+          echo "matrix=[${matrix%,}]" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.board }}
+    needs: discover
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        board: ${{ fromJson(needs.discover.outputs.matrix) }}
+    steps:
+      - name: Checkout master directory
+        uses: actions/checkout@v4
+        with:
+          path: uboot-mt7621
+
+      - name: 校验板级文件已填实值（不允许 TODO）
+        working-directory: uboot-mt7621
+        run: |
+          if grep -q 'TODO' "configs-mt7621/${{ matrix.board }}_defconfig"; then
+            echo "::error::${{ matrix.board }} 还有 TODO，先补齐再编译"
+            exit 1
+          fi
+
+      - name: Install essential packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install swig python2-dev
+          echo 'switch to python2 as default'
+          sudo rm /usr/bin/python
+          sudo ln -s /usr/bin/python2 /usr/bin/python
+
+      - name: Download OpenWrt toolchain
+        run: |
+          wget -O - https://github.com/DragonBluep/uboot-mt7621/releases/download/20230517/openwrt-toolchain-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz \
+            | tar --xz -xf -
+
+      - name: Compile
+        working-directory: uboot-mt7621
+        run: |
+          mkdir -p archive
+          BOARD=${{ matrix.board }} ./build.sh | tee "archive/${{ matrix.board }}-build.log"
+
+      - name: Rename artifacts
+        run: |
+          ts=$(date +'%Y-%m-%d-%H-%M')
+          for file in uboot-mt7621/archive/*; do
+            filename=$(basename "$file"); extension="${filename##*.}"; name="${filename%.*}"
+            mv "$file" "uboot-mt7621/archive/${name}-${ts}.${extension}"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.board }}-uboot
+          path: "uboot-mt7621/archive/"
+
+      - name: 汇总供 Release 使用
+        if: ${{ inputs.pub_release }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle-${{ matrix.board }}
+          path: "uboot-mt7621/archive/"
+
+  release:
+    name: Publish combined release
+    needs: [discover, build]
+    if: ${{ inputs.pub_release }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-bundle-*
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: oraybox-all-${{ github.run_number }}-${{ github.run_id }}
+          name: OrayBox u-boot (all boards, run ${{ github.run_number }})
+          body: |
+            - Commit: ${{ github.sha }}
+            - 板级来源：`configs-mt7621/oray_*_defconfig`，取值证据见各文件注释与 `oraybox/data/board-overrides.json`
+            - 刷写前务必核对分区表与 GPIO，`factory` 分区不要写；有砖机风险
+          files: dist/*
