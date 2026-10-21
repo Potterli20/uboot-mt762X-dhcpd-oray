@@ -1,0 +1,7 @@
+upstream/
+ref-uboot/
+cache/
+*.tgz
+*.tar.gz
+*.bin
+__pycache__/

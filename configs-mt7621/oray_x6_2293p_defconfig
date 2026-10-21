@@ -1,0 +1,15 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(kpanic),64k(factory),-(firmware)"
+--model "OrayBox_X6-2293P"
+--kernel-offset 0x50000
+# cpufreq 固件里拿不到：跑 tools/serial_probe.py 抓开机横幅后填
+--cpufreq TODO
+# ramfreq 待串口确认
+--ramfreq TODO
+# ddrparam 待确认（固件里只有 SDK 基线表）
+--ddrparam TODO
+--oldparam false
+--baudrate 115200
+--yes
+# mtdparts 来源: 继承 ORH/260
+# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（MTK SDK 会按实测容量改写，别直接照搬）

@@ -1,0 +1,951 @@
+{
+ "data/models/develop/A500_5.3.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/E3_1141_2.21.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/G5_1250_3.4.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d424"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/G5_2250_4.8.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/ORG_220_3.2.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/ORH_180_3.2.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/ORH_260_5.6.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1cf34"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/ORH_260_5.7.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1cf34"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/P5_1210_4.8.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/P5_2210_4.8.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/P5_2210_5.5.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300A_1121G_5.3.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300A_2151G_5.7.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300A_2151G_5.8.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300C_1121G_5.3.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300PRO_1153G_5.4.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300S_1151G_5.3.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300S_1151G_5.7.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300_1121G_4.8.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300_2121G_5.3.2/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/R300_2121G_5.7.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X1_1111_3.1.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X1_2111_4.1.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X1_3111_5.5.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X3A_1233_6.3.1_fit-sysupgrade-stable-v1.2-20221229/bootloader-bootloader-0x107d8.bin": {
+  "size": 341888,
+  "ddr": [],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c021100"
+   }
+  ],
+  "oldparam": null
+ },
+ "data/models/develop/X3A_1233_6.3.1_fit-sysupgrade-stable-v1.2-20221229/uboot.bin": {
+  "size": 67544,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x8b1c"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR2_1024M_LEGACY",
+    "offsets": [
+     "0xc0bc"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR3_4096M_LEGACY",
+    "offsets": [
+     "0xc11c"
+    ]
+   }
+  ],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c081100"
+   }
+  ],
+  "oldparam": false,
+  "trfc_word": "0xc000000"
+ },
+ "data/models/develop/X3PRO_1153_4.8.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X3_2151_3.1.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X3_3251_4.8.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X3_3251_5.7.1_sysupgrade-develop-flash-v1.0-20230316/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X3_3251_5.8.1_sysupgrade-develop-flash-v1.0-20230407/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X3_D1509A_2.20.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X3_D1509_2.20.1_1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X4C_1141G_3.5.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X4C_3131G_5.6.1_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X4_1123G_3.4.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X5_1253_3.1.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X5_2253_3.1.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X5_3353_3.4.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d424"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X5_4253_4.8.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X5_5255_4.6.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X6_1293P_3.1.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X6_2293P_3.1.1/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/develop/X6_3293P_4.8.1/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/A500_5.3.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/E3_1141_2.21.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/G5_1250_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/G5_2250_4.8.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/ORG_220_3.2.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/ORH_180_3.2.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/ORH_260_5.6.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1cf34"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/ORH_260_5.7.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1cf34"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/P5_1210_4.8.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/P5_2210_4.8.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/P5_2210_5.5.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300A_1121G_5.3.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300A_2151G_5.7.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300A_2151G_5.8.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300C_1121G_5.3.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300PRO_1153G_5.4.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300S_1151G_5.3.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300S_1151G_5.7.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300_1121G_4.8.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300_2121G_5.3.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/R300_2121G_5.7.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X1_1111_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X1_2111_4.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X1_3111_5.5.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X3A_1233_6.3.0_fit-sysupgrade-stable-v1.2-20221229/bootloader-bootloader-0x107d8.bin": {
+  "size": 341888,
+  "ddr": [],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c021100"
+   }
+  ],
+  "oldparam": null
+ },
+ "data/models/stable/X3A_1233_6.3.0_fit-sysupgrade-stable-v1.2-20221229/uboot.bin": {
+  "size": 67544,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x8b1c"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR2_1024M_LEGACY",
+    "offsets": [
+     "0xc0bc"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR3_4096M_LEGACY",
+    "offsets": [
+     "0xc11c"
+    ]
+   }
+  ],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c081100"
+   }
+  ],
+  "oldparam": false,
+  "trfc_word": "0xc000000"
+ },
+ "data/models/stable/X3PRO_1153_4.8.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X3_2151_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X3_3251_4.8.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X3_3251_5.7.0_sysupgrade-stable-flash-v1.0-20230316/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X3_3251_5.8.0_sysupgrade-stable-flash-v1.0-20230407/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X3_D1509A_2.20.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X3_D1509_2.20.0_1/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X4C_1141G_3.5.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X4C_3131G_5.6.0_flash/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X4_1123G_3.4.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_1253_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_2253_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_3353_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_4253_4.8.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_5255_4.6.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_6256_4.9.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_6256_5.2.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_6256_5.5.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X5_6256_6.0.0/bootloader-bootloader-0x20458.bin": {
+  "size": 564140,
+  "ddr": [],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c021100"
+   }
+  ],
+  "oldparam": null
+ },
+ "data/models/stable/X5_6256_6.0.0/bootloader-nand-bl-0x458.bin": {
+  "size": 72920,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0xbf78"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR2_1024M_LEGACY",
+    "offsets": [
+     "0xf518"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR3_4096M_LEGACY",
+    "offsets": [
+     "0xf578"
+    ]
+   }
+  ],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c081100"
+   }
+  ],
+  "oldparam": false,
+  "trfc_word": "0xc000000"
+ },
+ "data/models/stable/X5_6256_6.3.0/bootloader-bootloader-0x207d8.bin": {
+  "size": 564092,
+  "ddr": [],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c021100"
+   }
+  ],
+  "oldparam": null
+ },
+ "data/models/stable/X5_6256_6.3.0/bootloader-nand-bl-0x7d8.bin": {
+  "size": 72920,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0xbf78"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR2_1024M_LEGACY",
+    "offsets": [
+     "0xf518"
+    ]
+   },
+   {
+    "config": "MT7621_DRAM_DDR3_4096M_LEGACY",
+    "offsets": [
+     "0xf578"
+    ]
+   }
+  ],
+  "freq": [
+   {
+    "mhz": 1200,
+    "lui": "0x3c081100"
+   }
+  ],
+  "oldparam": false,
+  "trfc_word": "0xc000000"
+ },
+ "data/models/stable/X6_1293P_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X6_2293P_3.1.0/uboot.bin": {
+  "size": 327680,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x1d2f4"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ },
+ "data/models/stable/X6_3293P_4.8.0/uboot.bin": {
+  "size": 1310720,
+  "ddr": [
+   {
+    "config": "MT7621_DRAM_DDR2_512M_LEGACY",
+    "offsets": [
+     "0x108"
+    ]
+   }
+  ],
+  "freq": [],
+  "oldparam": null
+ }
+}

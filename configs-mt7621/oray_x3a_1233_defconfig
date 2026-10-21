@@ -1,0 +1,21 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),-(firmware)"
+--model "OrayBox_X3A-1233"
+--kernel-offset 0x50000
+# reset -> gpio@0x1e000600 a13
+--reset-pin 13
+# red -> gpio@0x1e000600 a5
+--sysled-pin 5
+# green -> gpio@0x1e000600 a9
+--sysled2-pin 9
+# cpufreq 固件里拿不到：跑 tools/serial_probe.py 抓开机横幅后填
+--cpufreq TODO
+# ramfreq 依据：原厂 u-boot 里的频率立即数 1200 MT/s
+--ramfreq 1200
+# ddrparam 待确认（固件里只有 SDK 基线表）
+--ddrparam TODO
+--oldparam false
+--baudrate 115200
+--yes
+# mtdparts 来源: u-boot 内嵌默认值
+# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（MTK SDK 会按实测容量改写，别直接照搬）

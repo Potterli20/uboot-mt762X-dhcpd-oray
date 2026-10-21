@@ -1,0 +1,21 @@
+--flash NAND
+--mtdparts "512k(u-boot),512k(kpanic),256k(factory),-(firmware)"
+--model "OrayBox_P5-2210"
+--kernel-offset 0x140000
+# reset -> bank@0 a18
+--reset-pin 18
+# hc:green:status -> bank@0 a6
+--sysled-pin 6
+# hc:green:wifi -> bank@0 a7
+--sysled2-pin 7
+# cpufreq 固件里拿不到：跑 tools/serial_probe.py 抓开机横幅后填
+--cpufreq TODO
+# ramfreq 待串口确认
+--ramfreq TODO
+# ddrparam 依据：DTB memory = 256MB
+--ddrparam DDR3-256MiB
+--oldparam false
+--baudrate 115200
+--yes
+# mtdparts 来源: DTB
+# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（MTK SDK 会按实测容量改写，别直接照搬）

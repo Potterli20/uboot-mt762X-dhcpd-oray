@@ -1,0 +1,19 @@
+--flash NAND
+--mtdparts "512k(u-boot),512k(kpanic),256k(factory),-(firmware)"
+--model "OrayBox_A500"
+--kernel-offset 0x140000
+# reset -> bank@0 a18
+--reset-pin 18
+# hc:blue:status -> bank@0 a7
+--sysled-pin 7
+# cpufreq 固件里拿不到：跑 tools/serial_probe.py 抓开机横幅后填
+--cpufreq TODO
+# ramfreq 待串口确认
+--ramfreq TODO
+# ddrparam 待确认（固件里只有 SDK 基线表）
+--ddrparam TODO
+--oldparam false
+--baudrate 115200
+--yes
+# mtdparts 来源: DTB
+# 原厂 u-boot 内嵌 dramc 基线表: DDR2_512M（MTK SDK 会按实测容量改写，别直接照搬）
