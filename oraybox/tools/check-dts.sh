@@ -23,40 +23,41 @@ soc_of() { case "$1" in *mt7620*) echo mt7620 ;; *) echo mt7628 ;; esac; }
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/include/dt-bindings/clock" "$TMP/include/dt-bindings/reset"
 
-get_dep() {   # $1 = 源码树内的相对路径
-  local f="$1" dest
-  case "$f" in
-    arch/mips/dts/*) dest="$TMP/${f##*/}" ;;      # dtsi 平铺：#include "mt7628a.dtsi" 按当前目录解析
-    *)               dest="$TMP/$f"; mkdir -p "$(dirname "$dest")" ;;
-  esac
+fetch_one() {   # $1=仓库相对路径 $2=落地路径；成功 0
+  local f="$1" dest="$2" code
   [ -f "$dest" ] && return 0
+  mkdir -p "$(dirname "$dest")"
   if [ -n "${UBOOT_SRC:-}" ]; then
-    cp "$UBOOT_SRC/$f" "$dest" && return 0
-    echo "!! 本地树缺 $f"; return 1
+    [ -f "$UBOOT_SRC/$f" ] && cp "$UBOOT_SRC/$f" "$dest" && return 0
+    return 1
   fi
   local B="https://cdn.jsdelivr.net/gh/u-boot/u-boot@${UBOOT_REF:-v2026.07}"
   for i in 1 2 3 4 5; do
-    curl -sSfL --max-time 40 -o "$dest" "$B/$f" && return 0
+    code=$(curl -sS -o "$dest" -w "%{http_code}" --max-time 40 "$B/$f" 2>/dev/null || echo 000)
+    [ "$code" = 200 ] && return 0
+    # 404 说明这个候选名不存在，直接换下一个，别浪费重试
+    [ "$code" = 404 ] && { rm -f "$dest"; return 1; }
     sleep 3
   done
-  echo "!! 取不到 $f（可用 UBOOT_SRC 指向本地 mainline 树）"; return 1
+  rm -f "$dest"; return 1
+}
+
+get_soc_deps() {   # $1=soc
+  local soc="$1" ok=0 f
+  # dtsi 名字两版不一样：mt7628 → mt7628a.dtsi，mt7620 → mt7620.dtsi，两个候选都试
+  for f in "arch/mips/dts/${soc}a.dtsi" "arch/mips/dts/${soc}.dtsi"; do
+    fetch_one "$f" "$TMP/${f##*/}" && ok=1
+  done
+  [ "$ok" = 1 ] || { echo "!! 找不到 ${soc} 的 dtsi（镜像和本地树都没有）"; return 1; }
+  for f in "include/dt-bindings/clock/${soc}-clk.h" "include/dt-bindings/reset/${soc}-reset.h"; do
+    fetch_one "$f" "$TMP/$f" || { echo "!! 缺 $f"; return 1; }
+  done
+  return 0
 }
 
 rc=0
 for soc in $(for t in "${targets[@]}"; do soc_of "$(basename "$t")"; done | sort -u); do
-  for f in "arch/mips/dts/${soc}a.dtsi" "arch/mips/dts/${soc}.dtsi" \
-           "include/dt-bindings/clock/${soc}-clk.h" "include/dt-bindings/reset/${soc}-reset.h"; do
-    # mt7620 的 dtsi 叫 mt7620.dtsi、mt7628 的叫 mt7628a.dtsi，两个名字都试，取存在的那个
-    if [ -n "${UBOOT_SRC:-}" ]; then
-      [ -f "$UBOOT_SRC/$f" ] || continue
-    else
-      case "$f" in
-        "arch/mips/dts/${soc}a.dtsi") ;;
-        "arch/mips/dts/${soc}.dtsi") [ -f "$TMP/${soc}a.dtsi" ] && continue ;;
-      esac
-    fi
-    get_dep "$f" || rc=1
-  done
+  get_soc_deps "$soc" || rc=1
 done
 
 for dts in "${targets[@]}"; do
