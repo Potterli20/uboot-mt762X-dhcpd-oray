@@ -9,10 +9,10 @@ on:
         type: string
         default: ''
       uboot_ref:
-        description: 'mainline u-boot 版本（MT7628 自 v2020.07 起受支持）'
+        description: 'mainline u-boot 版本（MT7628 自 v2020.07 起受支持；ENV_RELOC_GD_ENV_ADDR 需 >=v2026.01）'
         required: false
         type: string
-        default: 'v2024.07'
+        default: 'v2026.07'
       pub_release:
         description: '汇总成 GitHub Release（默认只存 artifact）'
         required: false

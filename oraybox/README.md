@@ -50,6 +50,7 @@ bash oraybox/mt7628/oraybox-x4c/check-dts.sh      # 默认校验 X4C + boards/ �
 
 当前 15 份 dts 全部能编成 DTB，15 份 defconfig 的 CONFIG 符号也全部在 v2024.07 里存在
 （`bash oraybox/tools/check-config.sh <u-boot 源码> ...`，没交叉编译器也能跑）。
+两个版本都扫过：v2026.07 与 v2024.07 的唯一差别就是 `ENV_RELOC_GD_ENV_ADDR`。。
 这些文件只保证"语法与 label 正确 + 分区表来自固件"，刷之前仍需实测。
 
 X4C 的 defconfig 已含：env 在 0x30000（kpanic 区）、`sf probe; sf read 0x83000000 0x50000 0x400000; bootm`、
@@ -59,9 +60,10 @@ bootmenu/TFTP/DHCP/ping 恢复命令、LZMA。刻意没写死 `CONFIG_MTDPARTS_D
 出包（MT7621 之外的 14 块板走这条）：
 
 ```bash
-# Actions → "Build OrayBox MT7628 boards"，默认 uboot_ref=v2024.07
+# Actions → "Build OrayBox MT7628 boards"，默认 uboot_ref=v2026.07
+# （ENV_RELOC_GD_ENV_ADDR 是 v2026.01 引入的；要退回 v2024.07 就删掉那一行，别的符号两版都认）
 # 本地等价命令：
-git clone --depth 1 -b v2024.07 https://source.denx.de/u-boot/u-boot.git
+git clone --depth 1 -b v2026.07 https://source.denx.de/u-boot/u-boot.git
 cp oraybox/mt7628/boards/X4C_3131G/* u-boot/arch/mips/dts/ # dts
 cp oraybox/mt7628/boards/X4C_3131G/*_defconfig u-boot/configs/
 make O=build mt7628_oraybox_x4c_3131g_defconfig
