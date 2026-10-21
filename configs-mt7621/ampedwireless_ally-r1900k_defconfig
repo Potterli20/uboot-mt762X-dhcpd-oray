@@ -1,0 +1,11 @@
+--flash NAND
+--mtdparts "512k(u-boot),512k(u-boot-env),256k(factory),-(firmware)"
+--model "Amped_Wireless_ALLY-R1900K"
+--kernel-offset 0x140000
+--reset-pin 16
+--sysled-pin 7
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-256MiB
+--baudrate 115200
+--yes

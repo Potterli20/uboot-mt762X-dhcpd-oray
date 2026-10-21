@@ -1,0 +1,14 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),-(firmware)"
+--model "Melonpi M21 DDR3-256MiB"
+--kernel-offset 0x50000
+--reset-pin 18
+--wps-pin 15
+--sysled-pin 0
+--sysled2-pin 16
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-256MiB
+--oldparam true
+--baudrate 115200
+--yes

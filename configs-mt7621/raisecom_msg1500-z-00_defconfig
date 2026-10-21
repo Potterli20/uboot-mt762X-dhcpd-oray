@@ -1,0 +1,11 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),-(firmware)"
+--model "RAISECOM_MSG1500_Z.00"
+--kernel-offset 0x50000
+--reset-pin 18
+--sysled-pin 10
+--cpufreq 880
+--ramfreq 800
+--ddrparam DDR2-64MiB
+--baudrate 115200
+--yes

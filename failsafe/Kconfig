@@ -1,0 +1,104 @@
+#
+# Failsafe Web UI
+#
+
+menuconfig WEBUI_FAILSAFE
+	bool "Enable Failsafe Web UI"
+	select TCP
+	select HTTPD
+	default n
+	help
+	  Enable Web based failsafe UI
+
+if WEBUI_FAILSAFE
+
+config FAILSAFE_LEGACY_UI
+	bool "Enable legacy failsafe Web UI"
+	default n
+	help
+	  Enable the legacy failsafe Web UI with simplified HTML pages
+	  (no i18n, no JavaScript-heavy UI). This replaces the modern
+	  full-featured Web UI with minimal pages for basic firmware
+	  recovery and initramfs boot operations.
+
+config FAILSAFE_LEGACY_MODE
+	bool "Enable legacy mode (simplified UI, no backup)"
+	select FAILSAFE_LEGACY_UI
+	default n
+	help
+	  Enable legacy mode for the failsafe Web UI. When enabled:
+	  - The legacy simplified HTML UI is used (no i18n/JS-heavy UI).
+	  - System backup functionality is disabled to reduce image size.
+	  Use this for minimal recovery images where only firmware
+	  upgrade, initramfs boot, and U-Boot update are needed.
+
+config WEBUI_FAILSAFE_ON_AUTOBOOT_FAIL
+	bool "Start Failsafe Web UI on autoboot failure"
+	default n
+
+config FAILSAFE_ON_BUTTON
+	bool "Press and hold the reset button to enter the failsafe mode"
+	default n
+
+config MT7621_BUTTON_RESET
+	int "Reset button GPIO"
+	range 0 48
+	depends on FAILSAFE_ON_BUTTON
+	help
+	  GPIO number of reset button used by failsafe logic.
+
+config MT7621_BUTTON_WPS_ENABLE
+	bool "Enable WPS button"
+	default n
+	depends on FAILSAFE_ON_BUTTON
+	help
+	  Enable WPS button GPIO for TFTP download mode.
+
+config MT7621_BUTTON_WPS
+	int "WPS button GPIO"
+	range 0 48
+	depends on MT7621_BUTTON_WPS_ENABLE
+	help
+	  GPIO number of WPS button used by failsafe logic.
+
+config MT7621_LED_STATUS1_ENABLE
+	bool "Enable status LED"
+	default n
+	help
+	  Enable status LED GPIO control. Disable to omit LED support.
+
+config MT7621_LED_STATUS1
+	int "Status LED GPIO"
+	range 0 48
+	depends on MT7621_LED_STATUS1_ENABLE
+	help
+	  GPIO number of status LED used by board init/failsafe indication.
+
+config MT7621_LED_STATUS2_ENABLE
+	bool "Enable status LED 2"
+	default n
+	help
+	  Enable status LED2 GPIO control. Disable to omit LED2 support.
+
+config MT7621_LED_STATUS2
+	int "Status LED 2 GPIO"
+	range 0 48
+	depends on MT7621_LED_STATUS2_ENABLE
+	help
+	  GPIO number of status LED2 used by board init/failsafe indication.
+
+config WEBUI_FAILSAFE_BOARD_MODEL
+	string "Failsafe board model string"
+	default ""
+	help
+	  Optional compile-time board model string for the failsafe Web UI.
+	  Used as a fallback when DT model / environment variables are not set.
+
+config WEBUI_FAILSAFE_BOARD_NAME
+	string "Failsafe board name string"
+	default ""
+	help
+	  Optional compile-time board name/id string for the failsafe Web UI.
+	  Used as a fallback when environment variables are not set.
+
+endif # WEBUI_FAILSAFE

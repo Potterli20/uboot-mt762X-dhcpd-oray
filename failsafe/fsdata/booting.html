@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="page_booting_title">Booting initramfs</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/main.js"></script>
+    <script>
+        function init() {
+            getversion();
+
+            ajax({
+                url: '/result',
+                done: function (response) {
+                    if (response == 'failed') {
+                        location = '/fail.html'
+                        return
+                    }
+
+                    var tr = (window.fsdata && window.fsdata.t) ? window.fsdata.t : function (k) { return k };
+                    document.getElementById('title').textContent = tr('h_boot_success')
+                    document.getElementById('info').innerHTML = tr('p_boot_success')
+                },
+                timeout: 30000
+            })
+        }
+    </script>
+</head>
+
+<body onload="init()">
+    <div id="m">
+        <h1 id="title" data-i18n="h_booting_initramfs">BOOTING INITRAMFS</h1>
+        <p id="info" data-i18n-html="p_booting_initramfs">
+            Your file was successfully uploaded! Booting is in progress, please wait...<br>
+            This page may be in not responding status for a short time.
+        </p>
+        <div id="l"></div>
+    </div>
+    <div id="version"></div>
+</body>
+
+</html>

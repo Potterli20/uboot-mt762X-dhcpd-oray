@@ -1,0 +1,11 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),320k(permanent_config),-(firmware)"
+--model "Phicomm_K2P"
+--kernel-offset 0xa0000
+--reset-pin 3
+--sysled-pin 13
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-128MiB
+--baudrate 115200
+--yes

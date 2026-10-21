@@ -1,0 +1,11 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),-(firmware)"
+--model "ADSLR_G7"
+--kernel-offset 0x50000
+--reset-pin 8
+--sysled-pin 7
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-256MiB
+--baudrate 115200
+--yes

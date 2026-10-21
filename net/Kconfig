@@ -1,0 +1,50 @@
+#
+# Network configuration
+#
+
+menuconfig NET
+	bool "Networking support"
+	default y
+
+if NET
+
+config NET_RANDOM_ETHADDR
+	bool "Random ethaddr if unset"
+	help
+	  Selecting this will allow the Ethernet interface to function
+	  even when the ethaddr variable for that interface is unset.
+	  A new MAC address will be generated on every boot and it will
+	  not be added to the environment.
+
+config NETCONSOLE
+	bool "NetConsole support"
+	help
+	  Support the 'nc' input/output device for networked console.
+	  See README.NetConsole for details.
+
+config TCP
+	bool "Enable Mediatek TCP framework"
+	default n
+	help
+	  Enable Mediatek TCP framework that allows some customized features.
+
+config HTTPD
+	bool "Enable Mediatek HTTPD framework"
+	default n
+	depends on TCP
+	help
+	  Enable Mediatek HTTPD framework that allows some customized features.
+
+config MTK_DHCPD
+	bool "Minimal DHCP server for MediaTek web failsafe"
+	default y
+	depends on HTTPD
+	help
+	  Enable a minimal DHCPv4 server that answers DHCPDISCOVER/DHCPREQUEST
+	  while the MediaTek web failsafe UI (httpd) is running.
+	  Default configuration:
+	    - Server IP: 192.168.1.1
+	    - Netmask: 255.255.255.0
+	    - DHCP pool: 192.168.1.100 ~ 192.168.1.200
+
+endif   # if NET

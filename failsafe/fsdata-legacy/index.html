@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+	<title>MediaTek System Recovery Mode</title>
+	<link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+<body>
+	<div id="banner">
+		MediaTek U-Boot System Recovery Mode
+	</div>
+	<div id="main">
+		<p>Upload Firmware image:</p>
+		<form action="/upload" method="post" enctype="multipart/form-data">
+			<p><input type="file" name="firmware" /></p>
+			<p><input type="submit" id="submit" value="Upload Firmware" /></p>
+		</form>
+
+		<br>
+
+		<p>Upload U-Boot image:</p>
+		<form action="/upload" method="post" enctype="multipart/form-data">
+			<p><input type="file" name="uboot" /></p>
+			<p><input type="submit" id="submit" value="Upload U-Boot" /></p>
+		</form>
+
+		<br>
+
+		<p>Upload RF-EEPROM image:</p>
+		<form action="/upload" method="post" enctype="multipart/form-data">
+			<p><input type="file" name="factory" /></p>
+			<p><input type="submit" id="submit" value="Upload Factory" /></p>
+		</form>
+
+		<br>
+
+		<p>Upload Initramfs image:</p>
+		<form action="/upload" method="post" enctype="multipart/form-data">
+			<p><input type="file" name="initramfs" /></p>
+			<p><input type="submit" id="submit" value="Upload Initramfs" /></p>
+		</form>
+	</div>
+</body>
+</html>

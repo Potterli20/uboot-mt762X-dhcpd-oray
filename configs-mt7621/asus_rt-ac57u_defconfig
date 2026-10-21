@@ -1,0 +1,11 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),-(firmware)"
+--model "ASUS_RT-AC57U"
+--kernel-offset 0x50000
+--reset-pin 41
+--sysled-pin 48
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-256MiB
+--baudrate 115200
+--yes

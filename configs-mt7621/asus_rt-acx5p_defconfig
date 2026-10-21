@@ -1,0 +1,11 @@
+--flash NAND
+--mtdparts "896k(u-boot),1m(u-boot-env),1m(factory),1m(factory2),-(firmware)"
+--model "ASUS_RT-ACx5P"
+--kernel-offset 0x3e0000
+--reset-pin 3
+--sysled-pin 4
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-256MiB
+--baudrate 115200
+--yes

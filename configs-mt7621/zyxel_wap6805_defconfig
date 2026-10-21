@@ -1,0 +1,11 @@
+--flash NAND
+--mtdparts "1m(u-boot),1m(u-boot-env),1m(factory),1m(u-boot-env),-(firmware)"
+--model "ZyXEL_WAP6805"
+--kernel-offset 0x400000
+--reset-pin 18
+--sysled-pin 4
+--cpufreq 880
+--ramfreq 800
+--ddrparam DDR2-64MiB
+--baudrate 115200
+--yes

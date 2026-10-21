@@ -1,0 +1,272 @@
+Build Output Images
+==================
+
+This document describes all images produced by ``make all`` for MT7621
+boards and explains how they relate to each other.
+
+.. contents:: Table of Contents
+
+
+Quick Reference
+---------------
+
+============ ========================================= ===========================
+Image        Description                               Flash-ready?
+============ ========================================= ===========================
+u-boot.bin   Raw U-Boot ELF stripped to binary         No
+u-boot.img   Legacy uImage (64-byte header + u-boot)   No (general bootm target)
+u-boot-lzma  LZMA-compressed u-boot.bin                No
+u-boot-lzma  LZMA u-boot.bin wrapped as uImage         No
+.img
+u-boot-mt7621 Whole-flash image via binman             **Yes — write to 0x0**
+.bin
+============ ========================================= ===========================
+
+The file you should write to flash is **u-boot-mt7621.bin**.
+
+
+Image Pipeline (MT7621 NAND Boot)
+---------------------------------
+
+::
+
+    u-boot (ELF)
+      │
+      ├──► objcopy ──► u-boot.bin  (raw binary)
+      │                   │
+      │                   ├──► mkimage ──► u-boot.img
+      │                   │                    (legacy uImage, no compression,
+      │                   │                     64B header + raw body)
+      │                   │
+      │                   ├──► lzma ──► u-boot.bin.lzma
+      │                   │                │
+      │                   │                └──► mkimage ──► u-boot-lzma.img
+      │                   │                         (legacy uImage, LZMA inside)
+      │                   │
+      │                   └──► binman ─┐
+      │                               │
+    u-boot-spl (SPL ELF)              │
+      │                               │
+      ├──► objcopy ──► u-boot-spl.bin │
+      │                   │           │
+      │                   └──► mkimage ──► spl/u-boot-mt7621-nand-spl.img
+      │                          (mt7621_nand header for BootROM)    │
+      │                                                              │
+      │                          ┌───────────────────────────────────┘
+      │                          ▼
+      └──────────────────► binman packs:
+                             1. spl/u-boot-mt7621-nand-spl.img  (SPL)
+                             2. u-boot-lzma.img                 (compressed U-Boot)
+                             with 0xFF padding and erase-block alignment
+                                 │
+                                 ▼
+                            u-boot-mt7621.bin  ← flash this!
+
+
+Image Details
+-------------
+
+u-boot.bin
+~~~~~~~~~~
+
+Raw U-Boot binary produced by ``objcopy -O binary`` from the ELF file.
+Contains U-Boot code + built-in DTB (when ``CONFIG_OF_EMBED`` or
+``CONFIG_OF_SEPARATE`` is set) + BSS placeholder data.
+
+This is the pure payload without any header or container format.
+It cannot be booted directly — it needs to be wrapped in a container.
+
+::
+
+    ┌────────────────────┐
+    │  u-boot.bin (raw)  │
+    └────────────────────┘
+
+
+u-boot.img
+~~~~~~~~~~
+
+Standard **legacy uImage** format produced by ``mkimage``::
+
+    MKIMAGEFLAGS_u-boot.img = -A $(ARCH) -T firmware -C none -O u-boot \
+        -a $(CONFIG_SYS_TEXT_BASE) -e $(CONFIG_SYS_UBOOT_START) \
+        -n "U-Boot $(UBOOTRELEASE)"
+
+A 64-byte header is prepended to ``u-boot.bin``.  The header contains:
+
+- Magic number (``0x27051956``)
+- Header CRC (integrity check of the header itself)
+- Timestamp
+- Data size
+- Load address
+- Entry point address
+- Data CRC (integrity check of the payload)
+- OS type, architecture, image type, compression type
+- Image name string
+
+::
+
+    ┌──────────────────────────────┐
+    │  uImage header (64 bytes)    │  ← magic, CRC, addresses, name
+    ├──────────────────────────────┤
+    │  u-boot.bin  (uncompressed)  │
+    └──────────────────────────────┘
+
+This is a standard format understood by U-Boot's ``bootm`` command.
+It is **not** suitable for direct flash writing on MT7621 because:
+
+1. The BootROM expects raw SPL at offset 0, not a uImage
+2. There is no SPL component
+3. There is no flash-erase alignment
+
+
+u-boot-lzma.img
+~~~~~~~~~~~~~~~
+
+Similar to ``u-boot.img`` but with LZMA compression::
+
+    MKIMAGEFLAGS_u-boot-lzma.img = -A $(ARCH) -T firmware -C lzma -O u-boot \
+        -a $(CONFIG_SYS_TEXT_BASE) -e $(CONFIG_SYS_UBOOT_START) \
+        -n "U-Boot $(UBOOTRELEASE)"
+
+::
+
+    ┌──────────────────────────────┐
+    │  uImage header (64 bytes)    │  ← -C lzma in header
+    ├──────────────────────────────┤
+    │  u-boot.bin  (LZMA compressed)│
+    └──────────────────────────────┘
+
+SPL decompresses this image from flash into RAM before jumping to it.
+Used as the payload component inside ``u-boot-mt7621.bin``.
+
+
+spl/u-boot-mt7621-nand-spl.img
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MT7621 NAND SPL with a **custom BootROM header**::
+
+    MKIMAGEFLAGS_u-boot-mt7621-nand-spl.img = -T mt7621_nand \
+        -a $(CONFIG_SPL_TEXT_BASE)
+
+::
+
+    ┌────────────────────────────────────┐
+    │  BootROM header (mt7621_nand type)  │
+    ├────────────────────────────────────┤
+    │  u-boot-spl.bin                     │
+    └────────────────────────────────────┘
+
+The header tells the MT7621 BootROM:
+- Memory load address for SPL
+- Code entry point
+- Expected size
+
+The BootROM loads this from NAND flash and executes SPL, which then:
+1. Initializes DRAM
+2. Loads the rest of the image (``u-boot-lzma.img``)
+3. Decompresses and jumps to U-Boot
+
+
+u-boot-mt7621.bin
+~~~~~~~~~~~~~~~~~
+
+**This is the file you write to flash.**
+
+Built by the **binman** tool using the layout described in
+``arch/mips/dts/mt7621-u-boot.dtsi``::
+
+    binman {
+        filename = "u-boot-mt7621.bin";
+        pad-byte = <0xff>;
+
+        blob {              // SPL at offset 0
+            filename = "spl/u-boot-mt7621-nand-spl.img";
+            align-end = <CONFIG_SPL_ALIGN_TO>;
+        };
+
+        u-boot-lzma-img {   // Compressed U-Boot
+        };
+    };
+
+Layout on flash (NAND boot)::
+
+    ┌────────────────────────────────────────┐  0x000000
+    │  SPL  (BootROM header + SPL code)      │
+    │  Aligned to erase-block boundary        │
+    │  (typically 128 KiB)                    │
+    ├────────────────────────────────────────┤  ← align-end
+    │  u-boot-lzma.img                        │
+    │  (LZMA-compressed uImage header + body) │
+    └────────────────────────────────────────┘
+    All unused space filled with 0xFF
+
+Key properties:
+
+- ``pad-byte = <0xff>`` — flash erased state, safe for NAND/NOR
+- ``align-end`` — ensures SPL region ends on erase-block boundary,
+  so the U-Boot region can be erased independently
+- Contains *everything* needed: BootROM → SPL → U-Boot
+
+For NOR or non-SPL configurations (``mt7621-u-boot.dtsi`` alternatives)::
+
+    # Without SPL
+    binman {
+        u-boot { };   // raw u-boot.bin at offset 0
+    };
+
+
+Why u-boot.img ≠ u-boot-mt7621.bin
+-----------------------------------
+
+These two images serve completely different purposes:
+
+====================== ============================ ===============================
+Property                ``u-boot.img``               ``u-boot-mt7621.bin``
+====================== ============================ ===============================
+**Format**              Single legacy uImage         Binman multi-component layout
+**Contains**            Only U-Boot (64B header      SPL + LZMA U-Boot + alignment
+                        + raw binary)                padding + 0xFF fill
+**Compression**         None (``-C none``)           U-Boot is LZMA compressed
+**SPL**                 No                           Yes
+**Flash alignment**     None                         Erase-block aligned
+**Write to flash?**     No — flash at 0x0 would      **Yes** — designed for this
+                        break BootROM chain
+**Usage**               ``bootm`` load by another    Write directly to flash
+                        bootloader                   starting at offset 0x0
+**Size**                512–600 KiB                  Variable, depends on SPL size
+                                                     + erase-block alignment
+====================== ============================ ===============================
+
+
+Verifying the Images
+--------------------
+
+Check image type and header info::
+
+    mkimage -l u-boot.img
+    mkimage -l u-boot-lzma.img
+    mkimage -l spl/u-boot-mt7621-nand-spl.img
+
+Check binary size and basic hex structure::
+
+    stat -c%s u-boot-mt7621.bin
+    hexdump -C -n 256 u-boot-mt7621.bin
+    hexdump -C -n 64 u-boot.img
+
+
+Flashing Guide
+--------------
+
+The recommended flash procedure using the failsafe web UI or a
+programmer::
+
+    # Write the full binman image to flash
+    flashcp u-boot-mt7621.bin /dev/mtd0
+
+Or via U-Boot shell::
+
+    tftpboot 0x80200000 u-boot-mt7621.bin
+    # Erase enough flash to cover the image
+    nand erase 0x0 <image_size_in_hex>
+    nand write 0x80200000 0x0 <image_size_in_hex>

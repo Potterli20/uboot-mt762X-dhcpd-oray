@@ -1,0 +1,11 @@
+--flash NOR
+--mtdparts "192k(u-boot),4k(u-boot-env),60k(u-boot-env),64k(factory),-(firmware)"
+--model "ALFA_Network_Quad-E4G"
+--kernel-offset 0x50000
+--reset-pin 14
+--sysled-pin 13
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-256MiB
+--baudrate 115200
+--yes

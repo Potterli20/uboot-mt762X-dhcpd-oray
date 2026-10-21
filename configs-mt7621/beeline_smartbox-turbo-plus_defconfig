@@ -1,0 +1,11 @@
+--flash NAND
+--mtdparts "1m(u-boot),1m(u-boot-env),1m(factory),1m(dual-flag),-(firmware)"
+--model "Beeline_SmartBox_TURBO+"
+--kernel-offset 0x400000
+--reset-pin 14
+--sysled-pin 13
+--cpufreq 880
+--ramfreq 1200
+--ddrparam DDR3-256MiB
+--baudrate 115200
+--yes

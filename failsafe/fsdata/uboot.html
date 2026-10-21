@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="page_uboot_title">U-Boot update</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/main.js"></script>
+</head>
+
+<body onload="getversion()">
+    <div id="m">
+        <h1 data-i18n="h_uboot">U-BOOT UPDATE</h1>
+        <p id="hint">
+            <span data-i18n-html="hint_uboot">You are going to update <strong>U-Boot (bootloader)</strong> on the
+                device.<br>
+                Please, choose file from your local hard drive and click <strong>Upload</strong> button.</span>
+        </p>
+        <form id="form">
+            <input id="file" type="file" name="uboot">
+            <input type="button" value="Upload" data-i18n-value="btn_upload" onclick="upload('uboot')">
+        </form>
+        <div>
+            <div class="bar" id="bar" style="display: none; --percent: 0;"></div>
+        </div>
+        <div id="size" style="display: none;">Size: xxxx</div>
+        <div id="md5" style="display: none;">MD5: xxxx</div>
+        <div id="upgrade" style="display: none;">
+            <p data-i18n="prompt_update">If all information above is correct, click "Update".</p>
+            <button class="button" data-i18n="btn_update" onclick="location = '/flashing.html'">Update</button>
+        </div>
+        <div class="i w">
+            <strong data-i18n="other_warnings">WARNINGS</strong>
+            <ul>
+                <li data-i18n="warn_no_poweroff">do not power off the device during update</li>
+                <li data-i18n="warn_restart">if everything goes well, the device will restart</li>
+                <li data-i18n="warn_choose_uboot">you can upload whatever you want, so be sure that you choose proper
+                    U-Boot image for your device</li>
+                <li data-i18n="warn_uboot_danger">updating U-Boot is a very dangerous operation and may damage your
+                    device!</li>
+            </ul>
+        </div>
+    </div>
+    <div id="version"></div>
+</body>
+
+</html>
