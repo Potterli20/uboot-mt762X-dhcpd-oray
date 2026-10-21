@@ -36,6 +36,9 @@ jobs:
           done
           exit $bad
 
+      - name: env 槽不得越界（不得压到 u-boot 或 factory）
+        run: python3 oraybox/tools/check-env-slot.py oraybox
+
       - name: 跑 oraybox/tools/check-boards.sh
         run: bash oraybox/tools/check-boards.sh "$(pwd)"
 
