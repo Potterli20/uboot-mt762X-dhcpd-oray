@@ -104,13 +104,15 @@ jobs:
             m|M) lim=$((num * 1048576)) ;;
             *)   echo "::error::解析不到 u-boot 分区大小（mtdparts=$mp）"; exit 1 ;;
           esac
-          f=$(ls -S archive/*.bin | head -1); n=$(stat -c%s "$f")
-          echo "$f: $n 字节 / u-boot 分区上限 $lim 字节"
-          echo "- ${{ matrix.board }}: $n / $lim 字节" >> "$GITHUB_STEP_SUMMARY"
-          if [ "$n" -gt "$lim" ]; then
-            echo "::error::超出 u-boot 分区，刷进去会覆盖后面的分区，禁止使用"
-            exit 1
-          fi
+          over=0
+          for f in archive/*.bin archive/*.img; do
+            [ -f "$f" ] || continue
+            n=$(stat -c%s "$f")
+            echo "$f: $n 字节 / u-boot 分区上限 $lim 字节"
+            if [ "$n" -gt "$lim" ]; then echo "::error::$f 超出 u-boot 分区（$n > $lim），刷进去会覆盖后面的分区"; over=1; fi
+          done
+          echo "- ${{ matrix.board }}: 上限 $lim 字节，$(cd archive && ls -S *.bin *.img 2>/dev/null | head -1 | xargs stat -c%s) 字节最大" >> "$GITHUB_STEP_SUMMARY"
+          exit $over
 
       - uses: actions/upload-artifact@v4
         with:
