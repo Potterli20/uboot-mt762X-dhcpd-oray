@@ -31,3 +31,17 @@ false
 
 建议 validate() 里加白名单检查，见 `02-ddrparam-whitelist.patch`。
 本仓库的 CI（`build-oraybox-all.yml`）另外加了产物体积守卫，防止镜像超出 u-boot 分区。
+
+
+## 要提交的话（需要你来点）
+
+发 issue/PR 走 GitHub API，需要授权；本环境里 `gh` 未登录、也没有 `GITHUB_TOKEN`，
+SSH key 只能推 `Potterli20/*` 的 git，不能替你在别人仓库发帖。两个 issue 正文已写成
+`issue-1-quote-test.md` / `issue-2-ddrparam-whitelist.md`，配套 patch 在同目录：
+
+```bash
+gh auth login                      # 或 export GITHUB_TOKEN=...
+bash oraybox/upstream/submit.sh           # dry-run 预览
+bash oraybox/upstream/submit.sh --yes     # 真发到 Yuzhii0718/uboot-mt7621-dhcpd
+bash oraybox/upstream/submit.sh --both --yes   # 连 DragonBluep/uboot-mt7621 一起（第三方仓库，自行判断）
+```
