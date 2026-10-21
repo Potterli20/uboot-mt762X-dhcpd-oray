@@ -1,0 +1,101 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * OrayBox X4C (MediaTek MT7628AN, 128MB DDR2, 16MB SPI-NOR)
+ * 板级参数来自 oraybox-firmwares 解包出的内核 DTB：
+ *   X4C_3131G_5.6.0_flash/files/dtb/*.dts  (compatible "WT6271-128", model "HC-WT6271")
+ * 模板：arch/mips/dts/mediatek,mt7628-rfb.dts (mainline u-boot)
+ *
+ * 放到 u-boot 的 arch/mips/dts/ 下，配合 configs/mt7628_oraybox_x4c_defconfig 使用。
+ */
+
+/dts-v1/;
+
+#include "mt7628a.dtsi"
+
+/ {
+	compatible = "oraybox,x4c", "ralink,mt7628a-soc";
+	model = "OrayBox X4C";
+
+	aliases {
+		serial0 = &uart0;
+		spi0 = &spi0;
+	};
+
+	/*
+	 * mainline 的 mt7628a.dtsi 只建模了 uart0（uartlite@c00 = 0x10000c00）。
+	 * 原厂 Linux cmdline 写的是 console=ttyS1,115200（MTK SDK 自己的编号），
+	 * 若板上串口实际接在第二路，需要自己往 dtsi 加 uart1 节点。
+	 */
+	chosen {
+		stdout-path = &uart0;
+	};
+};
+
+&pinctrl {
+	state_default: pin_state {
+		pleds {
+			groups = "p0led", "p1led", "p2led", "p3led", "p4led";
+			function = "led";
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+	num-cs = <1>;
+
+	spi-flash@0 {
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <25000000>;
+		reg = <0>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			/* 以下偏移/大小全部取自固件 DTB，别改 */
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;	/* 192KB */
+				read-only;
+			};
+
+			partition@30000 {
+				label = "kpanic";
+				reg = <0x30000 0x10000>;	/* 64KB，u-boot env 放这里 */
+			};
+
+			partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;	/* 64KB MAC + 无线校准，永远别写 */
+			};
+
+			partition@50000 {
+				label = "firmware";
+				reg = <0x50000 0xf90000>;
+			};
+
+			partition@fe0000 {
+				label = "bdinfo";
+				reg = <0xfe0000 0x10000>;
+			};
+
+			partition@ff0000 {
+				label = "reserve";
+				reg = <0xff0000 0x10000>;
+			};
+		};
+	};
+};
+
+&eth {
+	mediatek,wan-port = <0>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy_router_mode>;
+};

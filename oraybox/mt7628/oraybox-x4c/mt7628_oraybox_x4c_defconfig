@@ -65,7 +65,6 @@ CONFIG_CMD_MTDPARTS=y
 CONFIG_CMD_DHCP=y
 CONFIG_CMD_TFTPBOOT=y
 CONFIG_CMD_PING=y
-CONFIG_LZMA=y
 # 不写死 CONFIG_MTDPARTS_DEFAULT：dm-spi 下的 mtd id 要第一次开机 `mtd list` 才知道，别拿没验证的字符串硬编
 # 启动：mainline 的 SPI 是 dm-spi（没有 0xBF000000 XIP），所以先 sf read 再 bootm
 CONFIG_USE_BOOTCOMMAND=y

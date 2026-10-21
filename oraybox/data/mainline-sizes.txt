@@ -1,0 +1,25 @@
+E3_1141              163800 / 196608 字节  OK  mt7628_oraybox_e3_1141_defconfig
+oraybox-x4c        编译失败  
+ORH_180              163802 / 196608 字节  OK  mt7628_oraybox_orh_180_defconfig
+R300_1121G           165713 / 196608 字节  OK  mt7620_oraybox_r300_1121g_defconfig
+R300_2121G           165713 / 196608 字节  OK  mt7620_oraybox_r300_2121g_defconfig
+R300A_1121G          165696 / 196608 字节  OK  mt7620_oraybox_r300a_1121g_defconfig
+R300A_2151G          165696 / 196608 字节  OK  mt7620_oraybox_r300a_2151g_defconfig
+R300A_3151G          163805 / 196608 字节  OK  mt7628_oraybox_r300a_3151g_defconfig
+R300A_4151G          163805 / 196608 字节  OK  mt7628_oraybox_r300a_4151g_defconfig
+R300C_1121G          165715 / 196608 字节  OK  mt7620_oraybox_r300c_1121g_defconfig
+R300PRO_1153G        165720 / 196608 字节  OK  mt7620_oraybox_r300pro_1153g_defconfig
+R300S_1151G          165716 / 196608 字节  OK  mt7620_oraybox_r300s_1151g_defconfig
+R300S_2151GP         165719 / 196608 字节  OK  mt7620_oraybox_r300s_2151gp_defconfig
+X1_1111              163796 / 196608 字节  OK  mt7628_oraybox_x1_1111_defconfig
+X1_2111              163797 / 196608 字节  OK  mt7628_oraybox_x1_2111_defconfig
+X1_3111              163797 / 196608 字节  OK  mt7628_oraybox_x1_3111_defconfig
+X1_4111              163800 / 196608 字节  OK  mt7628_oraybox_x1_4111_defconfig
+X3_2151              163797 / 196608 字节  OK  mt7628_oraybox_x3_2151_defconfig
+X3_3251              163798 / 196608 字节  OK  mt7628_oraybox_x3_3251_defconfig
+X3_D1509             165715 / 196608 字节  OK  mt7620_oraybox_x3_d1509_defconfig
+X3_D1509A            163806 / 196608 字节  OK  mt7628_oraybox_x3_d1509a_defconfig
+X3PRO_1153           163804 / 196608 字节  OK  mt7628_oraybox_x3pro_1153_defconfig
+X4_1123G             165700 / 196608 字节  OK  mt7620_oraybox_x4_1123g_defconfig
+X4C_1141G            163805 / 196608 字节  OK  mt7628_oraybox_x4c_1141g_defconfig
+X4C_3131G            163803 / 196608 字节  OK  mt7628_oraybox_x4c_3131g_defconfig

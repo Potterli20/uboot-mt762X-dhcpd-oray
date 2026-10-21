@@ -39,6 +39,8 @@ oraybox/mt7628/oraybox-x4c/check-dts.sh  cpp+dtc 把 X4C 的 dts 编成 DTB，�
 
 ## MT7628 / MT7620 用法
 
+全部 25 份板级配置都用 OpenWrt 工具链真编过一遍，尺寸见 `data/mainline-sizes.txt`
+（MT7628 约 163.8K、MT7620 约 165.7K，上限 196,608）。
 MT7620 的 rfb 默认配置直接编出来 **218,082 字节，装不进蒲公英 192K 的 u-boot 分区**；
 关掉板子上没有/用不到的东西（MMC、USB、DOS/文件系统、FIT）后是 **165,715 字节**，进得去。
 MT7628 那边本来就 ~163.8K，同一批瘦身项是空操作，只当留余量。
