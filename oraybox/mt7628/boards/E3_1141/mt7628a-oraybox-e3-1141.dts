@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * OrayBox E3-1141 — 自动派生，未上机验证
+ * OrayBox E3-1141 (MT7628) — 由 oraybox/tools/gen-mtmips-dts.py 自动派生，未上机验证
  *
- * 证据来源: 分区/GPIO 继承 R300A/3151G（本板固件无 DTB，老内核不带 DT），未实测
- *   SoC      : MT7628AN (MIPS 24Kc)  RAM 128MB
+ * 证据来源: 分区/GPIO 继承 R300A/3151G（本板固件无 DTB），未实测
+ *   RAM      : 128MB
  *   console  : console=ttyS0,115200
- *   MAC      : partition@4 分区偏移 0x9
- *   按键/LED : hc:blue:red=gpio0/2, hc:blue:green=gpio0/0, hc:blue:blue=gpio0/3, hc:blue:wifi=gpio1/12, hc:blue:signal3=gpio0/4, hc:blue:signal2=gpio0/5, hc:blue:signal1=gpio1/5, reset=gpio1/6, wps=gpio1/14
+ *   MAC      : partition@4 偏移 0x9
+ *   按键/LED : hc:blue:red=&gpio0 2, hc:blue:green=&gpio0 0, hc:blue:blue=&gpio0 3, hc:blue:wifi=&gpio0 12, hc:blue:signal3=&gpio0 4, hc:blue:signal2=&gpio0 5, hc:blue:signal1=&gpio0 5, reset=&gpio0 6, wps=&gpio0 14
  *
- * 用法见 oraybox/mt7628/README.md；改动分区表前先跑 check-dts.sh 校验。
+ * 分区表照抄固件 DTB；u-boot 镜像必须小于 u-boot 分区，CI 里有体积守卫。
  */
 
 /dts-v1/;
@@ -29,6 +29,10 @@
 	};
 };
 
+&uart0 {
+	status = "okay";
+};
+
 &pinctrl {
 	state_default: pin_state {
 		pleds {
@@ -38,13 +42,8 @@
 	};
 };
 
-&uart0 {
-	status = "okay";
-};
-
 &spi0 {
 	status = "okay";
-	num-cs = <1>;
 
 	spi-flash@0 {
 		compatible = "jedec,spi-nor";

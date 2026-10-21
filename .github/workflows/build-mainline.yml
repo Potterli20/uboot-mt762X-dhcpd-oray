@@ -1,0 +1,152 @@
+name: Build OrayBox mainline boards (MT7628 + MT7620)
+
+on:
+  workflow_dispatch:
+    inputs:
+      boards:
+        description: '空格分隔的板目录（相对 oraybox/，如 mt7628/boards/X4C_3131G）；留空＝全部'
+        required: false
+        type: string
+        default: ''
+      uboot_ref:
+        description: 'mainline u-boot 版本（MT7628 自 v2020.07、MT7620 自 v2023.01 受支持；ENV_RELOC_GD_ENV_ADDR 需 >=v2026.01）'
+        required: false
+        type: string
+        default: 'v2026.07'
+      pub_release:
+        description: '汇总成 GitHub Release（默认只存 artifact）'
+        required: false
+        type: boolean
+        default: false
+
+# 默认 GITHUB_TOKEN 只读，发 Release 需要显式写权限
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    name: Collect board dirs
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pick
+        run: |
+          all=$(for d in oraybox/mt7628/oraybox-x4c oraybox/mt7628/boards/*/ oraybox/mt7620/boards/*/; do
+                   ls "$d"*_defconfig >/dev/null 2>&1 && echo "${d%/}"
+                 done)
+          if [ -n "${{ inputs.boards }}" ]; then
+            want=$(echo "${{ inputs.boards }}" | tr ' ' '\n' | sed 's|^|oraybox/|')
+            list=$(comm -12 <(echo "$all" | sort) <(echo "$want" | sort))
+            [ -n "$list" ] || { echo "::error::指定的板子都不存在"; exit 1; }
+          else
+            list="$all"
+          fi
+          echo "要编译 $(echo "$list" | wc -l) 块板"
+          echo "$list" | sed 's|^|- |' >> "$GITHUB_STEP_SUMMARY"
+          matrix=$(for b in $list; do printf '"%s",' "$b"; done)
+          echo "matrix=[${matrix%,}]" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.dir }}   
+    needs: discover
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJson(needs.discover.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: oray
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mipsel-linux-gnu device-tree-compiler bc bzip2 libssl-dev python3
+
+      - name: Fetch mainline u-boot ${{ inputs.uboot_ref }}
+        run: |
+          git clone --depth 1 --branch "${{ inputs.uboot_ref }}" \
+            https://source.denx.de/u-boot/u-boot.git u-boot \
+            || git clone --depth 1 --branch "${{ inputs.uboot_ref }}" \
+                 https://github.com/u-boot/u-boot.git u-boot
+
+      - name: 安装板级 dts 与 defconfig
+        run: |
+          d=oray/${{ matrix.dir }}
+          echo "BOARD=$(basename "$d")" >> "$GITHUB_ENV"
+          cp "$d"/*.dts u-boot/arch/mips/dts/
+          cp "$d"/*_defconfig u-boot/configs/
+          echo "DEFCONFIG=$(basename $(ls "$d"/*_defconfig) .defconfig)" >> "$GITHUB_ENV"
+
+      - name: DTS 预校验（纯 cpp+dtc；make dtbs 依赖完整 u-boot 目标，不适合当早检查）
+        run: |
+          UBOOT_REF="${{ inputs.uboot_ref }}" UBOOT_SRC="$GITHUB_WORKSPACE/u-boot" \
+            bash oray/oraybox/tools/check-dts.sh oray/${{ matrix.dir }}/*.dts
+
+      - name: 配置（记录 unknown symbol）
+        working-directory: u-boot
+        run: |
+          set -o pipefail
+          make O=build CROSS_COMPILE=mipsel-linux-gnu- "$DEFCONFIG" 2>&1 | tee /tmp/cfg.log
+          if grep -qi "unknown symbol" /tmp/cfg.log; then
+            echo "::warning::defconfig 里有该版本不认识的符号"
+            { echo "### ${{ matrix.dir }} unknown symbol"; grep -i "unknown symbol" /tmp/cfg.log; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Build u-boot-with-spl.bin
+        working-directory: u-boot
+        run: |
+          set -o pipefail
+          make O=build CROSS_COMPILE=mipsel-linux-gnu- -j"$(nproc)" 2>&1 | tail -30
+          ls -l build/u-boot-with-spl.bin
+          cp build/u-boot-with-spl.bin "$GITHUB_WORKSPACE/$BOARD-u-boot-with-spl.bin"
+
+      - name: 体积必须装得进 u-boot 分区（超了会盖到 env/factory）
+        run: |
+          dts=$(ls oray/${{ matrix.dir }}/*.dts)
+          lim=$(grep -A2 'label = "u-boot";' "$dts" | grep -oE 'reg = <0x[0-9a-f]+ 0x[0-9a-f]+' | grep -oE '0x[0-9a-f]+$' | head -1)
+          n=$(stat -c%s "$BOARD-u-boot-with-spl.bin")
+          echo "镜像 $n 字节 / u-boot 分区上限 $lim 字节"
+          echo "- $BOARD (${{ matrix.dir }}): $n / $((lim)) 字节" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$n" -gt "$((lim))" ]; then
+            echo "::error::超出 u-boot 分区，刷进去会覆盖后面的分区，禁止使用"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BOARD }}-uboot
+          path: ${{ env.BOARD }}-u-boot-with-spl.bin
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.pub_release }}
+        with:
+          name: release-mainline-${{ env.BOARD }}
+          path: ${{ env.BOARD }}-u-boot-with-spl.bin
+
+  release:
+    name: Publish combined mainline release
+    needs: [discover, build]
+    if: ${{ inputs.pub_release }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-mainline-*
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: oraybox-mainline-${{ github.run_number }}-${{ github.run_id }}
+          name: OrayBox MT7628/MT7620 u-boot (run ${{ github.run_number }})
+          body: |
+            - mainline u-boot: ${{ inputs.uboot_ref }}
+            - 板级文件来自 `oraybox/mt7628/`、`oraybox/mt7620/`，派生自固件内核 DTB，未全部上机验证
+            - 刷写前核对分区表；`factory` 分区不要写；有砖机风险
+          files: dist/*

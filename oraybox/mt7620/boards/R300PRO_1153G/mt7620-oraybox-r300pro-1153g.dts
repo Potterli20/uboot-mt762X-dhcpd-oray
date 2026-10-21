@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * OrayBox R300PRO-1153G (MT7620) — 由 oraybox/tools/gen-mtmips-dts.py 自动派生，未上机验证
+ *
+ * 证据来源: 内核 DTB 直读（OrayBox_R300Pro_1153G_5.4.0_flash.bin）
+ *   RAM      : 未写明（u-boot 运行时探测）
+ *   console  : console=ttyS0,115200
+ *   MAC      : partition@fe0000 偏移 0x9
+ *   按键/LED : reset=&gpio0 12, hc:blue:status=&gpio0 7, hc:blue:wifi=&gpio0 8, hc:blue:siginal3=&gpio0 0, hc:blue:siginal2=&gpio0 15, hc:blue:siginal1=&gpio0 0
+ *
+ * 分区表照抄固件 DTB；u-boot 镜像必须小于 u-boot 分区，CI 里有体积守卫。
+ */
+
+/dts-v1/;
+
+#include "mt7620.dtsi"
+
+/ {
+	compatible = "oraybox,r300pro-1153g", "mediatek,mt7620-soc";
+	model = "OrayBox R300PRO-1153G";
+
+	aliases {
+		serial0 = &uartlite;
+		spi0 = &spi0;
+	};
+
+	chosen {
+		stdout-path = &uartlite;
+	};
+};
+
+&uartlite {
+	status = "okay";
+};
+
+&pinctrl {
+	state_default: pin_state {
+		pleds {
+			groups = "ephy led", "wled";
+			function = "led";
+		};
+
+		gpios {
+			groups = "uartf";
+			function = "gpio";
+		};
+	};
+
+	/* gsw_pins 在 mainline 里是板级 dts 自己定义的 label（mt7620.dtsi 没有），照 rfb 抄 */
+	gsw_pins: gsw_pins {
+		mdio {
+			groups = "mdio";
+			function = "mdio";
+		};
+
+		rgmii1 {
+			groups = "rgmii1";
+			function = "rgmii1";
+		};
+
+		rgmii2 {
+			groups = "rgmii2";
+			function = "rgmii2";
+		};
+	};
+};
+
+&spi0 {
+	status = "okay";
+		num-cs = <2>;
+
+	spi-flash@0 {
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <25000000>;
+		reg = <0>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;  /* 只读 */
+			};
+
+			partition@30000 {
+				label = "kpanic";
+				reg = <0x30000 0x10000>;
+			};
+
+			partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;  /* 只读 */
+			};
+
+			partition@50000 {
+				label = "firmware";
+				reg = <0x50000 0xf90000>;
+			};
+
+			partition@fe0000 {
+				label = "bdinfo";
+				reg = <0xfe0000 0x10000>;
+			};
+
+			partition@ff0000 {
+				label = "reserve";
+				reg = <0xff0000 0x10000>;
+			};
+		};
+	};
+};
+
+&eth {
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&gsw_pins>;
+};

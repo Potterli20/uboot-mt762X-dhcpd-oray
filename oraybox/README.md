@@ -11,7 +11,7 @@ Board-level data, unpacking tools and an MT7628 port recipe, all derived from th
 |---|---|---|
 | MT7621 | 19 | `configs-mt7621/` 已出 19 份 defconfig，可直接喂 [uboot-mt7621-dhcpd](https://github.com/Yuzhii0718/uboot-mt7621-dhcpd) |
 | MT7628 | 14 | 与 MT7621 仓库无关，需 mainline `mach-mtmips`；14 块板的 board dts + defconfig 见 `oraybox/mt7628/boards/`，X4C 手工版在 `oraybox/mt7628/oraybox-x4c/` |
-| MT7620 | 10 | 待做（mainline v2023.01 起有 mt7620 支持） |
+| MT7620 | 10 | `oraybox/mt7620/boards/` 已出 10 份 board dts + defconfig（base 在 `oraybox/mt7620/oraybox-r300a/`） |
 | x86_64 | 7 | G100Pro / V1000 / V2000 等软路由，不涉及 u-boot |
 | ARM64 | 2 | G300-42120 = RK3568、X5PRO-1258 = ARM64 OrayOS FIT，均与 MTK u-boot 无关 |
 
@@ -39,13 +39,28 @@ oraybox/mt7628/oraybox-x4c/check-dts.sh  cpp+dtc 把 X4C 的 dts 编成 DTB，�
 
 ## MT7628 / MT7620 用法
 
-`oraybox/tools/gen-7628-dts.py` 从解包出的内核 DTB 派生 mainline 的 board dts（分区表、复位键/LED、
-MAC 来源、console），没有 DTB 的老固件板按同 SoC/同型号前缀找供体，文件头写明来源与"未实测"。
-派生完用 `check-dts.sh` 编译校验（依赖 mainline 的 `mt7628a.dtsi` 与 dt-bindings，可走镜像或 `UBOOT_SRC`）：
+MT7620 的 rfb 默认配置直接编出来 **218,082 字节，装不进蒲公英 192K 的 u-boot 分区**；
+关掉板子上没有/用不到的东西（MMC、USB、DOS/文件系统、FIT）后是 **165,715 字节**，进得去。
+MT7628 那边本来就 ~163.8K，同一批瘦身项是空操作，只当留余量。
+CI 的 `build-mainline.yml` 里有体积守卫：产物超出该板 dts 里 u-boot 分区大小就直接 fail。
+
+本地免 root 复现编译（OpenWrt SDK 里抠工具链，三个坑写在脚本头注释里）：
 
 ```bash
-python3 oraybox/tools/gen-7628-dts.py
-bash oraybox/mt7628/oraybox-x4c/check-dts.sh      # 默认校验 X4C + boards/ 下全部
+bash oraybox/tools/get-toolchain.sh .toolchain        # 约 170MB 下载
+eval "$(bash oraybox/tools/get-toolchain.sh .toolchain --env)"
+make O=build $CROSS_COMPILE_PREFIX mt7628_oraybox_x4c_3131g_defconfig
+make O=build CROSS_COMPILE=mipsel-openwrt-linux- -j$(nproc) u-boot-with-spl.bin
+bash oraybox/tools/size-report.sh <u-boot 树>          # 全板体积对照表
+```
+
+`oraybox/tools/gen-7628-dts.py` 从解包出的内核 DTB 派生 mainline 的 board dts（分区表、复位键/LED、
+MAC 来源、console），没有 DTB 的老固件板按同 SoC/同型号前缀找供体，文件头写明来源与"未实测"。
+派生完用 `check-dts.sh` 编译校验（依赖 mainline 的 dtsi 与 dt-bindings，可走镜像或 `UBOOT_SRC`）：
+
+```bash
+python3 oraybox/tools/gen-mtmips-dts.py            # MT7628 + MT7620 一起
+bash oraybox/tools/check-dts.sh                    # 默认扫两条线全部板子
 ```
 
 当前 15 份 dts 全部能编成 DTB，15 份 defconfig 的 CONFIG 符号也全部在 v2024.07 里存在

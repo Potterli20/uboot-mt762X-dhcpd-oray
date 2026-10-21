@@ -70,3 +70,12 @@ CONFIG_LZMA=y
 # 启动：mainline 的 SPI 是 dm-spi（没有 0xBF000000 XIP），所以先 sf read 再 bootm
 CONFIG_USE_BOOTCOMMAND=y
 CONFIG_BOOTCOMMAND="sf probe 0 50000000; sf read 0x83000000 0x50000 0x400000; bootm 0x83000000"
+# --- 体积守卫：192K 的 u-boot 分区装不下 rfb 默认全家桶，关掉板子上没有/用不到的 ---
+# CONFIG_MMC is not set
+# CONFIG_CMD_MMC is not set
+# CONFIG_DM_MMC is not set
+# CONFIG_USB is not set
+# CONFIG_CMD_USB is not set
+# CONFIG_USB_STORAGE is not set
+# CONFIG_DOS_PARTITION is not set
+# CONFIG_CMD_FS_GENERIC is not set

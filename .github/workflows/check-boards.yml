@@ -26,5 +26,5 @@ jobs:
       - name: 校验 X4C 的板级 DTS 能编成 DTB
         run: |
           sudo apt-get update && sudo apt-get install -y device-tree-compiler
-          # 与 build-mt7628.yml 的默认版本保持一致，避免拿 master 校验而实际编的是发布版
-          UBOOT_REF=v2026.07 bash oraybox/mt7628/oraybox-x4c/check-dts.sh   # 依赖从 mainline 镜像拉 mt7628a.dtsi + dt-bindings
+          # 与 build-mainline.yml 的默认版本保持一致；脚本会扫 mt7628 + mt7620 两条线
+          UBOOT_REF=v2026.07 bash oraybox/tools/check-dts.sh

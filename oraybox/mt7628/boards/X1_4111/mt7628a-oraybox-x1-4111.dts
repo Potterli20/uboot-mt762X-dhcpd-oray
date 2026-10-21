@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * OrayBox X1-4111 — 自动派生，未上机验证
+ * OrayBox X1-4111 (MT7628) — 由 oraybox/tools/gen-mtmips-dts.py 自动派生，未上机验证
  *
  * 证据来源: 内核 DTB 直读（oraybox-x1-4111-6.5.0-sysupgrade-stable-v1.0_20240301.bin）
- *   SoC      : MT7628AN (MIPS 24Kc)  RAM 128MB
+ *   RAM      : 128MB
  *   console  : console=ttyS0,115200
- *   MAC      : partition@4 分区偏移 0x9
- *   按键/LED : oraybox:red:status=gpio0/1, oraybox:blue:status=gpio1/5, oraybox:white:status=gpio1/12, reset=gpio1/6
+ *   MAC      : partition@4 偏移 0x9
+ *   按键/LED : oraybox:red:status=&gpio0 1, oraybox:blue:status=&gpio0 5, oraybox:white:status=&gpio0 12, reset=&gpio0 6
  *
- * 用法见 oraybox/mt7628/README.md；改动分区表前先跑 check-dts.sh 校验。
+ * 分区表照抄固件 DTB；u-boot 镜像必须小于 u-boot 分区，CI 里有体积守卫。
  */
 
 /dts-v1/;
@@ -29,6 +29,10 @@
 	};
 };
 
+&uart0 {
+	status = "okay";
+};
+
 &pinctrl {
 	state_default: pin_state {
 		pleds {
@@ -38,13 +42,8 @@
 	};
 };
 
-&uart0 {
-	status = "okay";
-};
-
 &spi0 {
 	status = "okay";
-	num-cs = <1>;
 
 	spi-flash@0 {
 		compatible = "jedec,spi-nor";
