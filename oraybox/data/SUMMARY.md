@@ -1,12 +1,12 @@
 # 蒲公英固件解包报告（oraybox-firmwares）
 
-- 固件 127 个，型号/硬件组合 52 个；提取到 DTS 49 份，含引导区 91 份，按内容去重的引导区 88 个，按 banner+版本戳去重的原厂 u-boot 构建 46 种。
+- 固件 127 个，型号/硬件组合 52 个；提取到 DTS 59 份，含引导区 91 份，按内容去重的引导区 88 个，按 banner+版本戳去重的原厂 u-boot 构建 46 种。
 
 ## 型号对照表
 
 | 型号 | 硬件 | 介质 | SoC/板名 | DTB model | u-boot banner | 版本戳 | uImage@ | squashfs@ | DTS |
 |---|---|---|---|---|---|---|---|---|---|
-| A20 | 1226 | ? |  |  |  |  | 0x0 | - | - |
+| A20 | 1226 | ? | oraybox | OrayBox-A20-1226 |  |  | 0x0 | - | Y |
 | A500 |  | nand | HCMT7621 | MTK Wireless HCMT7621 N512 Board | U-Boot 1.1.3 (Aug 21 2020 - 18:57:47) | U_BOOT 00000100 | 0x140000 | 0x381000 | Y |
 | E3 | 1141 | spi-nor |  |  | U-Boot 1.1.3 (Nov 15 2018 - 16:25:22) | U_BOOT 00000001 | 0x50000 | 0x160000 | - |
 | G100PRO |  | spi-nor |  |  |  |  | - | 0xa80000 | - |
@@ -42,7 +42,7 @@
 | X3 | 3251 | spi-nor | HCMT7628 | HC-WT6503 | U-Boot 1.1.3 (Aug 27 2020 - 14:04:05) | U_BOOT 00000100 | 0x50000 | 0x190000 | Y |
 | X3 | D1509 | spi-nor | HCMT7620 |  | U-Boot 1.1.3 (Aug 13 2015 - 15:32:11) | U_BOOT 00000003 | 0x50000 | 0x150000 | - |
 | X3 | D1509A | spi-nor | HCMT7628 |  | U-Boot 1.1.3 (Sep 19 2018 - 10:29:01) | U_BOOT 00000007 | 0x50000 | 0x160000 | - |
-| X3A | 1233 | spi-nor | mediatek | OrayBox-X3A | U-Boot 2018.11 (Dec 28 2022 - 06:04:04 +0000) |  | 0x3fec0 | 0x23fec0 | Y |
+| X3A | 1233 | spi-nor | oraybox | OrayBox-X3A |  |  | 0x0 | 0x200000 | Y |
 | X3PRO | 1153 | spi-nor | HCMT7628 |  | U-Boot 1.1.3 (Feb  5 2021 - 18:44:28) | U_BOOT 00000007 | 0x50000 | 0x190000 | - |
 | X4 | 1123G | spi-nor | HCMT7620 |  | U-Boot 1.1.3 (Jun 29 2016 - 02:00:11) | U_BOOT 00000007 | 0x50000 | 0x190000 | - |
 | X4C | 1141G | spi-nor |  |  | U-Boot 1.1.3 (May 20 2020 - 13:57:00) | U_BOOT 00000001 | 0x50000 | 0x160000 | - |
@@ -52,8 +52,8 @@
 | X5 | 3353 | spi-nor | HCMT7621 |  | U-Boot 1.1.3 (Feb 17 2020 - 14:59:39) | U_BOOT 00000009 | 0x50000 | 0x1c0000 | - |
 | X5 | 4253 | nand | HCMT7621 |  | U-Boot 1.1.3 (Jan 12 2021 - 17:42:57) | U_BOOT 00000013 | 0x140000 | 0x2c0000 | - |
 | X5 | 5255 | nand | HCMT7621 |  | U-Boot 1.1.3 (Dec 30 2020 - 12:38:16) | U_BOOT 00000013 | 0x140000 | 0x2c0000 | - |
-| X5 | 6256 | nand | HCMT7620|HCMT7621 | HC-WT6708 | U-Boot 1.1.3 (Nov 30 2021 - 16:22:52) | U_BOOT 00000101 | 0x140000 | 0x381000 | Y |
-| X5 | 7256 | ? |  |  |  |  | 0x400 | - | - |
+| X5 | 6256 | nand | HCMT7621 | OrayBox-X5-6256 | U-Boot 1.1.3 (Jun 24 2022 - 10:38:20) | U_BOOT 00000101 | 0x140000 | 0x1241000 | Y |
+| X5 | 7256 | ? | oraybox | OrayBox-X5-7256 |  |  | 0x400 | - | Y |
 | X5PRO | 1258 | ? |  |  |  |  | - | - | - |
 | X6 | 1293P | spi-nor | HCMT7621 |  | U-Boot 1.1.3 (May 27 2019 - 09:25:34) | U_BOOT 00000003 | 0x50000 | 0x190000 | - |
 | X6 | 2293P | spi-nor | HCMT7621 |  | U-Boot 1.1.3 (May 23 2019 - 19:04:48) | U_BOOT 00000003 | 0x50000 | 0x190000 | - |
@@ -63,6 +63,7 @@
 
 | 型号 | 硬件 | 分区 |
 |---|---|---|
+| A20 | 1226 | `u-boot` 0x00+0x30000 `u-boot-env` 0x30000+0x10000 `factory` 0x40000+0x10000 `firmware` 0x50000+0x70000 `bdinfo` 0x20000+0x10000 `reserve` 0x10000+0x10000 `fullflash` 0x00+0x00 |
 | A500 |  | `u-boot` 0x00+0x80000 `kpanic` 0x80000+0x80000 `factory` 0x100000+0x40000 `firmware` 0x140000+0x2000000 `debug` 0x2140000+0x80000 `bdinfo` 0x21c0000+0x80000 `reserve` 0x2240000+0x80000 `overlay` 0x22c0000+0x1000000 `opt` 0x52c0000+0x2cc0000 `firmware_backup` 0x32c0000+0x2000000 |
 | ORH | 260 | `u-boot` 0x00+0x30000 `kpanic` 0x30000+0x10000 `factory` 0x40000+0x10000 `firmware` 0x50000+0xf90000 `bdinfo` 0xfe0000+0x10000 `reserve` 0xff0000+0x10000 |
 | P5 | 2210 | `u-boot` 0x00+0x80000 `kpanic` 0x80000+0x80000 `factory` 0x100000+0x40000 `firmware` 0x140000+0x2000000 `debug` 0x2140000+0x80000 `bdinfo` 0x21c0000+0x80000 `reserve` 0x2240000+0x80000 `overlay` 0x22c0000+0x5cc0000 |
@@ -78,8 +79,10 @@
 | X1 | 3111 | `u-boot` 0x00+0x30000 `kpanic` 0x30000+0x10000 `factory` 0x40000+0x10000 `firmware` 0x50000+0xf90000 `bdinfo` 0xfe0000+0x10000 `reserve` 0xff0000+0x10000 |
 | X1 | 4111 | `u-boot` 0x00+0x30000 `u-boot-env` 0x30000+0x10000 `factory` 0x40000+0x10000 `firmware` 0x50000+0xf90000 `bdinfo` 0xfe0000+0x10000 `reserve` 0xff0000+0x10000 `fullflash` 0x00+0x00 |
 | X3 | 3251 | `u-boot` 0x00+0x30000 `kpanic` 0x30000+0x10000 `factory` 0x40000+0x10000 `firmware` 0x50000+0xf90000 `bdinfo` 0xfe0000+0x10000 `reserve` 0xff0000+0x10000 |
+| X3A | 1233 | `u-boot` 0x00+0x30000 `u-boot-env` 0x30000+0x10000 `factory` 0x40000+0x10000 `firmware` 0x50000+0xf00000 `reserve` 0xff0000+0x10000 |
 | X4C | 3131G | `u-boot` 0x00+0x30000 `kpanic` 0x30000+0x10000 `factory` 0x40000+0x10000 `firmware` 0x50000+0xf90000 `bdinfo` 0xfe0000+0x10000 `reserve` 0xff0000+0x10000 |
-| X5 | 6256 | `u-boot` 0x00+0x80000 `kpanic` 0x80000+0x80000 `factory` 0x100000+0x40000 `firmware` 0x140000+0x2000000 `debug` 0x2140000+0x80000 `bdinfo` 0x21c0000+0x80000 `reserve` 0x2240000+0x80000 `overlay` 0x22c0000+0x3000000 `opt` 0x52c0000+0x2cc0000 |
+| X5 | 6256 | `u-boot` 0x00+0x80000 `u-boot-env` 0x80000+0x80000 `factory` 0x100000+0x40000 `bdinfo` 0x140000+0x80000 `kpanic` 0x1c0000+0x80000 `UBI_DEV_0` 0x240000+0x3200000 `UBI_DEV_1` 0x3440000+0x3200000 `reserve` 0x6640000+0x00 |
+| X5 | 7256 | `u-boot` 0x00+0x80000 `u-boot-env` 0x80000+0x80000 `factory` 0x100000+0x40000 `bdinfo` 0x140000+0x80000 `kpanic` 0x1c0000+0x80000 `UBI_DEV_0` 0x240000+0x3200000 `UBI_DEV_1` 0x3440000+0x3200000 `reserve` 0x6640000+0x00 `fullflash` 0x00+0x00 |
 
 ## 原厂 u-boot 构建（按 banner + 版本戳去重）
 

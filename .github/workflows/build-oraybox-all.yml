@@ -33,11 +33,19 @@ jobs:
           else
             list=$(ls configs-mt7621/ | sed -n 's/^\(oray_[a-z0-9_.-]*\)_defconfig$/\1/p')
           fi
-          missing=0
+          ready=""
           for b in $list; do
-            [ -f "configs-mt7621/${b}_defconfig" ] || { echo "::error::找不到 configs-mt7621/${b}_defconfig"; missing=1; }
+            f="configs-mt7621/${b}_defconfig"
+            if [ ! -f "$f" ]; then echo "::error::找不到 $f"; exit 1; fi
+            if grep -q TODO "$f"; then
+              echo "::notice::跳过 $b：还有 TODO（cpufreq/ramfreq/ddrparam 需实测，见文件注释）"
+              echo "- $b 缺实测值，已跳过" >> "$GITHUB_STEP_SUMMARY"
+            else
+              ready="$ready $b"
+            fi
           done
-          [ "$missing" = 0 ] || exit 1
+          list=$(echo $ready)
+          [ -n "$list" ] || { echo "::error::没有可编译的板子"; exit 1; }
           n=$(echo "$list" | wc -w)
           echo "要编译 $n 块板：$(echo $list)"
           matrix=$(for b in $list; do printf '"%s",' "$b"; done)
@@ -56,14 +64,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: uboot-mt7621
-
-      - name: 校验板级文件已填实值（不允许 TODO）
-        working-directory: uboot-mt7621
-        run: |
-          if grep -q 'TODO' "configs-mt7621/${{ matrix.board }}_defconfig"; then
-            echo "::error::${{ matrix.board }} 还有 TODO，先补齐再编译"
-            exit 1
-          fi
 
       - name: Install essential packages
         run: |

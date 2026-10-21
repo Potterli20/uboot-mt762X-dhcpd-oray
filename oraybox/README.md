@@ -9,11 +9,15 @@ Board-level data, unpacking tools and an MT7628 port recipe, all derived from th
 
 | SoC | 型号数 | 现状 |
 |---|---|---|
-| MT7621 | 17 | `configs-mt7621/` 已出 17 份 defconfig，可直接喂 [uboot-mt7621-dhcpd](https://github.com/Yuzhii0718/uboot-mt7621-dhcpd) |
-| MT7628 | 14 | 与 MT7621 仓库无关，需 mainline `mach-mtmips`；X4C 配方见 `uboot-mt7628/` |
+| MT7621 | 19 | `configs-mt7621/` 已出 19 份 defconfig，可直接喂 [uboot-mt7621-dhcpd](https://github.com/Yuzhii0718/uboot-mt7621-dhcpd) |
+| MT7628 | 14 | 与 MT7621 仓库无关，需 mainline `mach-mtmips`；X4C 配方见 `oraybox/mt7628/` |
 | MT7620 | 10 | 待做（mainline v2023.01 起有 mt7620 支持） |
 | x86_64 | 7 | G100Pro / V1000 / V2000 等软路由，不涉及 u-boot |
-| 未定 | 4 | A20 / G300 / X5-7256 / X5PRO，rootfs 非 squashfs，待补 |
+| ARM64 | 2 | G300-42120 = RK3568、X5PRO-1258 = ARM64 OrayOS FIT，均与 MTK u-boot 无关 |
+
+A20-1226 与 X5-7256 是新解析出来的 MT7621（前者靠 FIT 内 DTB、后者靠 tar 子镜像的 UBI 分区表）；
+这两块板的 `--ddrparam` 还缺实测（DTB 里没有 memory 节点、板名也没 `-Sxxx/-Nxxx` 后缀），
+批量 workflow 会自动跳过含 TODO 的板子并在 summary 里列出。
 
 ## 目录 / layout
 

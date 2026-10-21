@@ -1,0 +1,19 @@
+--flash NOR
+--mtdparts "192k(u-boot),64k(u-boot-env),64k(factory),-(firmware)"
+--model "OrayBox_A20-1226"
+--kernel-offset 0x50000
+# reset -> bank@0 a8
+--reset-pin 8
+# oraybox:blue:status -> bank@0 a6
+--sysled-pin 6
+# oraybox:green:status -> bank@0 a7
+--sysled2-pin 7
+# cpufreq 依据: MT7621A 标称默认（已验证 5 块板 DTB cpuclock=880MHz），未逐一实测
+--cpufreq 880
+# ramfreq 依据: 仓库 Kconfig 默认 1200 MT/s（原厂 blob 未匹到频率立即数，DDR3 常用档）
+--ramfreq 1200
+--ddrparam TODO
+--oldparam false
+--baudrate 115200
+--yes
+# mtdparts 来源: DTB

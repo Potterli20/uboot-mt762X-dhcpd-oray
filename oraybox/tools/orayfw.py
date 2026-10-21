@@ -198,6 +198,103 @@ def find_images(data, limit=0x400000):
     return out
 
 
+FDT_BEGIN_NODE, FDT_END_NODE, FDT_PROP, FDT_NOP, FDT_END = 1, 2, 3, 4, 9
+
+
+def walk_fdt(buf, off=0):
+    """极简 FDT 遍历：返回 [(节点路径, {属性名: (绝对偏移, 大小)})]。"""
+    magic, total, s_struct, s_strings, _rsv, _ver, _lcv, _cpu, sz_strings, sz_struct = struct.unpack(
+        ">10I", buf[off : off + 40]
+    )
+    if magic != 0xD00DFEED:
+        return []
+    strtab = buf[off + s_strings : off + s_strings + sz_strings]
+    p = off + s_struct
+    end = off + s_struct + sz_struct
+    stack, cur_name, props, out = [], "", {}, []
+
+    def cstr(b, i):
+        j = b.find(b"\0", i)
+        return b[i:j].decode(errors="replace")
+
+    while p < end:
+        tok = struct.unpack(">I", buf[p : p + 4])[0]
+        p += 4
+        if tok == FDT_BEGIN_NODE:
+            nm = cstr(buf, p)
+            p += len(nm) + 1
+            p += (4 - (p % 4)) % 4
+            stack.append(nm.split("/")[-1] if nm else "")
+            cur_name, props = "/".join(x for x in stack if x), {}
+        elif tok == FDT_END_NODE:
+            if stack:
+                stack.pop()
+            out.append((cur_name, props))
+            cur_name = "/".join(x for x in stack if x)
+            props = {}
+        elif tok == FDT_PROP:
+            ln, nameoff = struct.unpack(">II", buf[p : p + 8])
+            p += 8
+            key = cstr(strtab, nameoff)
+            props.setdefault(key, (p, ln))
+            p += ln
+            p += (4 - (p % 4)) % 4
+        elif tok == FDT_NOP:
+            continue
+        elif tok == FDT_END:
+            break
+        else:
+            break
+    return out
+
+
+def prop_text(buf, rng):
+    o, ln = rng
+    return buf[o : o + ln].split(b"\0")[0].decode(errors="replace")
+
+
+def tar_members(buf, start=0, limit=None):
+    """解析（可能是嵌套的）ustar 归档，返回 [{name, offset, size}]。"""
+    limit = limit or len(buf)
+    out, off = [], start
+    while off + 512 <= limit:
+        if buf[off + 257 : off + 262] != b"ustar":
+            nxt = buf.find(b"ustar", off + 1, limit)
+            if nxt < 0:
+                break
+            off = (nxt - 257) // 512 * 512
+            continue
+        name = buf[off : off + 100].split(b"\0")[0].decode(errors="replace")
+        try:
+            size = int(buf[off + 124 : off + 136].split(b"\0")[0] or b"0", 8)
+        except ValueError:
+            break
+        if not name:
+            break
+        out.append({"name": name, "offset": off + 512, "size": size})
+        off = off + 512 + ((size + 511) // 512) * 512
+    return out
+
+
+def parse_fit(data, off):
+    """解 OpenWrt/MTK 的 FIT 容器，返回子镜像清单（含 data 字节区间）。"""
+    out = []
+    for path, props in walk_fdt(data, off):
+        if not path.startswith("images/") or "data" not in props:
+            continue
+        o, ln = props["data"]
+        out.append(
+            {
+                "node": path.split("/")[-1],
+                "type": prop_text(data, props["type"]) if "type" in props else "",
+                "desc": prop_text(data, props["description"]) if "description" in props else "",
+                "offset": o,
+                "size": ln,
+            }
+        )
+    return out
+
+
 def parse_partitions(dts_text):
     """从反编译 DTS 里取出 mtd 分区表。"""
     parts = []
@@ -303,6 +400,14 @@ def extract_dtbs(buf, out_dir, tag):
     return found
 
 
+def extract_dtbs_from_payload(payload, mdir, tag):
+    """先解压再找 DTB（tar 子镜像、kernel-first 镜像都走这里）。"""
+    comp, dec = try_decompress(payload)
+    if not dec:
+        return extract_dtbs(payload, os.path.join(mdir, "files", "dtb"), tag)
+    return extract_dtbs(dec, os.path.join(mdir, "files", "dtb"), tag)
+
+
 def kernel_info(kern):
     res = {}
     mc = re.search(rb"CMDLINE:[\x20-\x7e]+", kern)
@@ -357,6 +462,18 @@ def extract_rootfs_meta(slice_path, out_dir):
             txt = "\n".join(keep[:60])
         got[rel] = txt[:4000]
     return got
+
+
+def media_of(m):
+    """解包阶段的粗判 + 分区表跨度，给出 spi-nor / nand。"""
+    parts = m.get("partitions") or []
+    ubi = [q for q in parts if q["label"].startswith("UBI_DEV") or "ubi" in q["label"].lower()]
+    extent = max((int(q["offset"], 16) + int(q["size"], 16) for q in parts), default=0) if parts else 0
+    if ubi or extent > 0x2000000:
+        return "nand"
+    if parts:
+        return "spi-nor"
+    return m.get("flash_media", "?")
 
 
 def model_dir(entry, meta):
@@ -460,6 +577,73 @@ def process(entry):
             meta["partitions"] = src.get("partitions", [])
             meta["dtb_model"] = src.get("model", "")
             meta["dtb_compatible"] = src.get("compatible", "")
+
+        # OpenWrt tar-sysupgrade：先列成员，control 文件暴露 image/SoC 名，子镜像再走 FIT/DTB
+        if data[:8].startswith(b"sysupgrade") or data[257:262] == b"ustar":
+            mem = tar_members(data)
+            meta["tar_members"] = [{"name": x["name"], "size": x["size"],
+                                "arch64": data[x["offset"] : x["offset"] + 256].find(b"ARM64") >= 0} for x in mem]
+        if any(x["arch64"] for x in meta["tar_members"]):
+            meta["arch"] = "ARM64"
+            for x in mem:
+                blob = data[x["offset"] : x["offset"] + x["size"]]
+                low = x["name"].lower()
+                if low.endswith(("control", ".conf", ".sh")) or b"SUPPORTED_DEVICES" in blob[:4096] or blob[:5] == b"BOARD":
+                    txt = "".join(c for c in blob.decode("latin1") if 31 < ord(c) < 127 or c in "\n\t")
+                    keep = [ln for ln in txt.splitlines() if re.search(r"SUPPORTED|BOARD|IMAGE|VERSION|0x[0-9a-f]{4,}", ln)]
+                    meta.setdefault("fit_scripts", {})["tar-" + x["name"]] = "\n".join(keep[:40])[:2000]
+                elif blob[:4] == DTB_MAGIC:
+                    for fit_off in [m.start() for m in re.finditer(re.escape(DTB_MAGIC), blob[:0x4000])]:
+                        subs = parse_fit(blob, fit_off)
+                        if not subs:
+                            continue
+                        meta.setdefault("fit_images", []).extend({"node": y["node"], "type": y["type"], "size": y["size"]} for y in subs)
+                        for y in subs:
+                            yb = blob[y["offset"] : y["offset"] + y["size"]]
+                            got = extract_dtbs(yb, os.path.join(mdir, "files", "dtb"), f"{tag}-tarfit-{y['node']}")
+                            if y["type"] == "kernel":
+                                got = got or extract_dtbs_from_payload(yb, mdir, f"{tag}-tarfit-{y['node']}")
+                            if got and not dtbs:
+                                dtbs = got
+                        break
+                elif b"ustar" in blob[:1024]:
+                    for sub in tar_members(blob)[:8]:
+                        meta.setdefault("tar_members_nested", {})[x["name"]] = [
+                            {"name": y["name"], "size": y["size"]} for y in tar_members(blob)
+                        ][:12]
+                        sb = blob[sub["offset"] : sub["offset"] + sub["size"]]
+                        if sub["name"].endswith(".itb") or sb[:4] == DTB_MAGIC:
+                            got = extract_dtbs(sb, os.path.join(mdir, "files", "dtb"), f"{tag}-tar-{sub['name'].split('/')[-1]}")
+                            if got and not dtbs:
+                                dtbs = got
+                        got2 = extract_dtbs_from_payload(sb, mdir, f"{tag}-tar-{sub['name'].split('/')[-1]}")
+                        if got2 and not dtbs:
+                            dtbs = got2
+
+        for fit_off in [m.start() for m in re.finditer(re.escape(DTB_MAGIC), data[:0x4000])]:
+            subs = parse_fit(data, fit_off)
+            if not subs:
+                continue
+            meta["fit_offset"] = hex(fit_off)
+            meta["fit_images"] = [{"node": x["node"], "type": x["type"], "size": x["size"]} for x in subs]
+            for x in subs:
+                blob = data[x["offset"] : x["offset"] + x["size"]]
+                if x["type"] == "flat_dt" or blob[:4] == DTB_MAGIC:
+                    dtbs += extract_dtbs(blob, os.path.join(mdir, "files", "dtb"), f"{tag}-fit-{x['node']}")
+                    continue
+                if x["type"] == "script":
+                    txt = "".join(c for c in blob.decode("latin1") if 31 < ord(c) < 127 or c in "\n\t")
+                    keep = [ln for ln in txt.splitlines() if re.search(r'partition=|sec=|0x[0-9a-f]{4,}|UPDATE_|dd bs=|mtd ', ln)]
+                    meta.setdefault("fit_scripts", {})[x["node"]] = "\n".join(keep[:60])[:3000]
+                    continue
+                comp, dec = try_decompress(blob)
+                if dec:
+                    x["compress"] = comp
+                    x["uncompressed"] = len(dec)
+                    got = extract_dtbs(dec, os.path.join(mdir, "files", "dtb"), f"{tag}-fit-{x['node']}")
+                    if got and not dtbs:
+                        dtbs = got
+            break
 
         sq = find_squashfs(data, (kernel["offset"] + kernel["image_size"]) if kernel else 0) or sq_any
         if sq:
@@ -681,6 +865,14 @@ def detect_soc(m):
         (m.get("board_names") or [])
         + [(m.get("kernel") or {}).get("name", ""), m.get("dtb_compatible", ""), m.get("dtb_model", "")]
     )
+    fs = " ".join((m.get("fit_scripts") or {}).values())
+    if m.get("arch") == "ARM64":
+        return "ARM64"
+    ma = re.search(r"BOARD=(\w*)(rk\d{4}|arm\d+)", fs) or re.search(r"(rk\d{4})", fs)
+    if ma:
+        return "ARM64/" + ma.group(1)
+    if "ARM64" in str(m.get("fit_images")) or "ARM64" in fs or "ARM64" in " ".join(x["name"] for x in m.get("images", [])):
+        return "ARM64"
     rel = (m.get("rootfs_meta") or {}).get("etc/openwrt_release", "")
     tgt = re.search(r"DISTRIB_TARGET=['\"]?([\w/-]+)", rel)
     if tgt:
@@ -799,6 +991,9 @@ def parts_to_mtdparts(parts):
         size = int(p["size"], 16)
         if p["label"] in ("bdinfo", "reserve", "overlay", "opt", "debug", "firmware_backup", "fullflash"):
             continue
+        if p["label"].startswith("UBI_DEV"):        # UBI 卷不是 mtdparts 语义
+            cells.append("-(firmware)")
+            break
         cells.append(f"{size_str(size)}({p['label']})")
     if cells and cells[-1].endswith("(firmware)"):
         cells[-1] = "-(firmware)"
@@ -908,7 +1103,7 @@ def cmd_boards(_args):
         for p in m.get("partitions") or []:
             if p["label"] == "firmware":
                 donors.setdefault(
-                    (detect_soc(m), m.get("flash_media"), int(p["offset"], 16)),
+                    (detect_soc(m), media_of(m), int(p["offset"], 16)),
                     (parts_to_mtdparts(m["partitions"]), f"{m['model']}/{m['hwid']}"),
                 )
                 break
@@ -943,14 +1138,27 @@ def cmd_boards(_args):
                 gpio_src = f"继承 {dn[1]}（同 {soc}" + (f"、同 {suffix} 后缀，厂商 board 文件相同）" if suffix else "，无板名后缀，需实测）")
         kname = (m.get("kernel") or {}).get("name", "")
         kern = m.get("kernel") or {}
-        kfw = next((int(p["offset"], 16) for p in parts if p["label"] == "firmware"), kern.get("offset"))
+        kfw = next((int(p["offset"], 16) for p in parts if p["label"] in ("firmware",)), None) \
+            or next((int(p["offset"], 16) for p in parts if p["label"].startswith("UBI_DEV")), None) \
+            or kern.get("offset")
+        media = m.get("flash_media", "?")
+        ubi_parts = [q for q in parts if q["label"].startswith("UBI_DEV") or "ubi" in q["label"].lower()]
+        extent = max((int(q["offset"], 16) + int(q["size"], 16) for q in parts), default=0) if parts else 0
+        if ubi_parts or extent > 0x2000000:
+            media = "nand"
+        elif parts:
+            media = "spi-nor"
+        elif media not in ("nand", "spi-nor"):
+            dts_all = open(dts, errors="replace").read() if dts and os.path.isfile(dts) else ""
+            media = "nand" if re.search(r"nand[@b:]", dts_all) else ("spi-nor" if "spi-flash" in dts_all else media)
+
         mp, src = "", ""
         if parts:
             mp, src = parts_to_mtdparts(parts), "DTB"
         elif uboot_embedded_mtdparts(m):
             mp, src = uboot_embedded_mtdparts(m), "u-boot 内嵌默认值"
         elif (soc, m.get("flash_media"), kfw) in donors:
-            mp, src = donors[(soc, m.get("flash_media"), kfw)][0], f"继承 {donors[(soc, m.get('flash_media'), kfw)][1]}"
+            mp, src = donors[(soc, media, kfw)][0], f"继承 {donors[(soc, media, kfw)][1]}"
         else:
             s = synth_mtdparts(m.get("flash_media"), kfw)
             mp, src = (s, "推断") if s else ("", "缺失")
@@ -984,7 +1192,7 @@ def cmd_boards(_args):
                               ("mtdparts", mp), ("reset/sysled", io)) if not v]
         rows.append(
             {
-                "model": mdl, "hwid": hw, "soc": soc, "media": m.get("flash_media", ""),
+                "model": mdl, "hwid": hw, "soc": soc, "media": media,
                 "firmware": m["file"], "kernel_offset": hex(kern.get("offset", 0)) if kern else "",
                 "fw_offset": hex(kfw) if kfw else "",
                 "mtdparts": mp, "mtdparts_src": src, "boot_banner": m.get("banner", ""),
@@ -1002,7 +1210,7 @@ def cmd_boards(_args):
             board = f"oray_{(mdl + '_' + hw).strip('_').lower()}"
             ko = offset_from_mtdparts(mp) or kfw
             lines = [
-                f"--flash {'NAND' if m.get('flash_media') == 'nand' else 'NOR'}",
+                f"--flash {'NAND' if media == 'nand' else 'NOR'}",
                 f'--mtdparts "{mp}"',
                 f'--model "OrayBox_{mdl + ("-" + hw if hw else "")}"',
                 f"--kernel-offset {hex(ko)}",
