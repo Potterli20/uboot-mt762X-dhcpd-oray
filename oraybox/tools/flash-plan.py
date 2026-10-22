@@ -283,6 +283,12 @@ def check_all():
         elif not (0 <= off < (dict((p["label"], p["size"]) for p in dts_parts(dts)).get(lab) or 0)):
             print(f"!! {name}: {lab}+{hex(off)} 越出该分区")
             bad += 1
+        # dts 头写的容量必须和 csv（含 board-overrides.json）一致，否则"继承"来的数字会一直留着
+        ram = re.search(r"RAM\s*:\s*(\d+)MB", t)
+        row = load_board(name)
+        if ram and row and row["ram_mb"] and int(ram.group(1)) != int(row["ram_mb"]):
+            print(f"!! {name}: dts 头写 {ram.group(1)}MB，csv/overrides 是 {row['ram_mb']}MB")
+            bad += 1
     print(f"flash-plan --check: 主线上 {n} 块板，问题 {bad} 块")
     return 1 if bad else 0
 

@@ -207,6 +207,16 @@ def render(soc, model, hw, info, src_note):
     )
 
 
+def load_overrides():
+    """data/board-overrides.json 是手工核对过的值（带 evidence）。
+    之前只有 orayfw.py boards 会读它，生成的 mainline dts 还写着"继承"来的容量，两边会打架。"""
+    p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "board-overrides.json")
+    try:
+        return {k: v for k, v in json.load(open(p)).items() if not k.startswith("_")}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--index", default="data/index.json")
@@ -239,6 +249,10 @@ def main():
                 fam = re.match(r"[A-Za-z]+\d*", mdl)
                 dn = next((d for d in donors if fam and d[0].startswith(fam.group())), donors[0])
                 info, note = dict(dn[2]), f"分区/GPIO 继承 {dn[0]}/{dn[1]}（本板固件无 DTB），未实测"
+            ov = load_overrides().get(f"{mdl}/{hw}") or {}
+            if ov.get("ram_mb"):
+                info = dict(info)
+                info["ram"] = f"{ov['ram_mb']}MB（board-overrides.json：{ov.get('ram_evidence', '')}）"
             outdir = os.path.join(c["out"], f"{mdl}_{hw}")
             os.makedirs(outdir, exist_ok=True)
             name = f"{c['dts_prefix']}{mdl}-{hw}".lower()
