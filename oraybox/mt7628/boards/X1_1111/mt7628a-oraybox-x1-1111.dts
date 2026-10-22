@@ -5,7 +5,7 @@
  * 证据来源: 分区/GPIO 继承 X1/3111（本板固件无 DTB），未实测
  *   RAM      : 128MB
  *   console  : console=ttyS0,115200
- *   MAC      : partition@fe0000 偏移 0x9
+ *   MAC      : bdinfo@0xfe0000 +0x9（同型号借用 X1_3111_5.5.1.dts）
  *   按键/LED : reset=&gpio0 6, hc:green:status=&gpio0 12, hc:green:extra=&gpio0 5, hc:green:wifi=&gpio0 1
  *
  * 分区表照抄固件 DTB；u-boot 镜像必须小于 u-boot 分区，CI 里有体积守卫。

@@ -5,7 +5,7 @@
  * 证据来源: 内核 DTB 直读（oraybox-r300s-2151gp-6.4.1-sysupgrade-develop-v1.0_20230921.bin）
  *   RAM      : 未写明（u-boot 运行时探测）
  *   console  : console=ttyS0,115200
- *   MAC      : partition@fe0000 偏移 0x9
+ *   MAC      : bdinfo@0xfe0000 +0x9
  *   按键/LED : oraybox:red:status=&gpio0 7, oraybox:green:status=&gpio0 11, oraybox:blue:status=&gpio0 9, oraybox:blue:wifi=&gpio0 0, oraybox:blue:signal1=&gpio0 10, oraybox:blue:signal2=&gpio0 15, oraybox:blue:signal3=&gpio0 1, reset=&gpio0 12
  *
  * 分区表照抄固件 DTB；u-boot 镜像必须小于 u-boot 分区，CI 里有体积守卫。

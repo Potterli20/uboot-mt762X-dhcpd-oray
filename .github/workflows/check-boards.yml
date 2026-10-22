@@ -39,6 +39,9 @@ jobs:
       - name: env 槽不得越界（不得压到 u-boot 或 factory）
         run: python3 oraybox/tools/check-env-slot.py oraybox
 
+      - name: MAC 证据必须落在本板 dts 的分区表里
+        run: python3 oraybox/tools/flash-plan.py --check
+
       - name: 跑 oraybox/tools/check-boards.sh
         run: bash oraybox/tools/check-boards.sh "$(pwd)"
 

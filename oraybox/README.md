@@ -112,8 +112,33 @@ BOARD=oray_x3a_1233 ./build.sh
 
 ## 安全提醒
 
-`factory` 分区（MAC + 无线校准）永远不要写。刷 bootloader 前先备份原厂 0x0 起的前 192KB/256KB；
+刷 bootloader 前先备份原厂 0x0 起的前 192KB/256KB；
 原厂 u-boot 带 failsafe httpd + TFTP（按住 reset 上电，`192.168.1.119`，默认 `ipaddr/serverip` 见 `data/board-params.csv`），可救砖。
+`oraybox/tools/flash-plan.py <板名>` 会按该板自己的分区表打印备份/编译/刷写/校验命令，NAND 用 `nanddump` 而不是 `dd skip`。
+
+## MAC 到底在哪块分区（影响 ethaddr）
+
+解包出来的内核 dts 里，`mtd-mac-address` 基本都指向 **`bdinfo` 偏移 0x9**（SPI-NOR 上是 `0xfe0000`，
+NAND 上是 `0x21c0000`，A20 是 `0x20000`——所以不能硬编一个偏移到处用）；只有 X5-6256 5.5.0 例外，写的是
+`factory + 0xe006`。`factory` 主要是无线校准，往它里面找 LAN MAC 会取到无效地址。
+
+```bash
+python3 oraybox/tools/flash-plan.py --check    # CI 里也跑：MAC 证据必须落在本板 dts 的分区表内
+```
+
+为什么不在 dts 里用内核那套 `nvmem-cells = <&macaddr_bdinfo_9>`：u-boot v2026.07 的 nvmem 是
+`drivers/misc/nvmem.c` 这个 meta-uclass，只接 I2C_EEPROM / MISC / RTC 三种后端，**没有 MTD/SPI-NOR 实现**，
+所以 `nvmem_cell_get_by_name(dev,"mac-address")` 在这类板子上取不到值。u-boot 侧剩下的路子是
+`mac-address`/`local-mac-address` 字面量（共享镜像不能用）或者刷完第一次手动 `env set ethaddr`，
+否则 `CONFIG_NET_RANDOM_ETHADDR` 每次开机换一个 MAC，而蒲公英是按 MAC 认设备身份的。
+
+## 一个原厂笔误
+
+`X3A_1233_5.5.1` 的内核 DTB 里那个分区节点名是 `artition@fe0000`（少了个 p）。fixed-partitions 只认
+`label`/`reg`，所以原厂 Linux 不受影响，但按 `partition@<hex>` 名字匹配的提取器会整块漏掉 bdinfo。
+`gen-mtmips-dts.py` 现在走缩进栈解析（`tools/dtsread.py`），不再依赖节点名和制表符层数——
+之前 NAND 板（A500/P5/X5-6256/7256）的分区表就是因为 4 层缩进写死而读成空表，只能靠"继承"别的板。
+
 
 ## 复现
 

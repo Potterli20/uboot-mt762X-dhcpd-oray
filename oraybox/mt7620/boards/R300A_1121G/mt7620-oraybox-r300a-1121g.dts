@@ -5,7 +5,7 @@
  * 证据来源: 内核 DTB 直读（OrayBox_R300A-1121G_5.3.0.bin）
  *   RAM      : 未写明（u-boot 运行时探测）
  *   console  : console=ttyS0,115200
- *   MAC      : partition@fe0000 偏移 0x9
+ *   MAC      : bdinfo@0xfe0000 +0x9
  *   按键/LED : reset=&gpio0 12, wps=&gpio0 10, hc:blue:blue=&gpio0 9, hc:blue:red=&gpio0 7, hc:blue:wifi=&gpio0 8, hc:blue:green=&gpio0 11, hc:blue:link1=&gpio0 0, hc:blue:siginal1=&gpio0 1, hc:blue:siginal2=&gpio0 2, hc:blue:siginal3=&gpio0 3, hc:blue:link2=&gpio0 4
  *
  * 分区表照抄固件 DTB；u-boot 镜像必须小于 u-boot 分区，CI 里有体积守卫。

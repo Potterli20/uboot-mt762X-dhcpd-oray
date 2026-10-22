@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * OrayBox X4C (MediaTek MT7628AN, 128MB DDR2, 16MB SPI-NOR)
+ * OrayBox X4C (MediaTek MT7628AN, 16MB SPI-NOR)
  * 板级参数来自 oraybox-firmwares 解包出的内核 DTB：
  *   X4C_3131G_5.6.0_flash/files/dtb/*.dts  (compatible "WT6271-128", model "HC-WT6271")
  * 模板：arch/mips/dts/mediatek,mt7628-rfb.dts (mainline u-boot)
+ *
+ *   RAM      : 128MB（X4C/3131G 的 memory reg 0x8000000）；X4C/1141G 官方规格是 64MB，两版硬件不同。
+ *              DDR 类型 DTB 里没有写，u-boot 的 SPL 会上板自动探测/校准
+ *   MAC      : bdinfo@0xfe0000 +0x9（内核 dts 的 mtd-mac-address）
  *
  * 放到 u-boot 的 arch/mips/dts/ 下，配合 configs/mt7628_oraybox_x4c_defconfig 使用。
  */

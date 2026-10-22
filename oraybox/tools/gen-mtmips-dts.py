@@ -15,6 +15,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import dtsread  # noqa: E402
 import orayfw as O  # noqa: E402
 
 SOC = {
@@ -159,24 +160,24 @@ PART = """\t\t\tpartition@{OFF} {{
 def parse_kernel_dts(path):
     txt = open(path, errors="replace").read()
     pm = O.phandle_map(txt)
+    # 用缩进栈走节点，不按 "partition@" + 固定制表符数匹配：NAND 的 dts 多一层嵌套，
+    # 老写法整块读不到分区（A500/P5/X5-6256/7256 全中），X3A 里原厂还把节点名拼成了 "artition@fe0000"。
     parts = []
-    for mm in re.finditer(r"partition@([0-9a-f]+)\s*\{(.*?)\n\t\t\t\t\};", txt, re.S):
-        body = mm.group(2)
-        lab = re.search(r'label\s*=\s*"([^"]+)"', body)
-        reg = re.search(r"reg\s*=\s*<\s*0x([0-9a-f]+)\s+0x([0-9a-f]+)", body)
-        if lab and reg:
-            parts.append({"label": lab.group(1), "offset": reg.group(1), "size": reg.group(2)})
+    for _, p in dtsread.walk_nodes(txt):
+        reg = p.get("reg")
+        if "label" in p and reg and len(reg) == 2:
+            parts.append({"label": p["label"], "offset": f"{reg[0]:x}", "size": f"{reg[1]:x}"})
     keys = []
     for mm in re.finditer(r'label\s*=\s*"([^"]+)"\s*;\s*gpios\s*=\s*<\s*0x([0-9a-f]+)\s+0x([0-9a-f]+)', txt):
         node = pm.get(mm.group(2), "")
         bank = re.search(r"(?:bank|gpio)(\d+)", node)
         keys.append({"label": mm.group(1), "ctrl": (bank.group(1) if bank else "0"), "pin": int(mm.group(3), 16)})
-    mac = re.search(r"mtd-mac-address\s*=\s*<\s*0x([0-9a-f]+)\s+0x([0-9a-f]+)", txt)
+    mac = dtsread.mac_cells(txt)[0]
     macnote = "未找到"
     if mac:
-        node = pm.get(mac.group(1), "")
-        lab = next((p["label"] for p in parts if p["label"] in node), node or "?")
-        macnote = f"{lab} 偏移 0x{int(mac.group(2), 16):x}"
+        props, off = mac[0]
+        reg = props.get("reg") or []
+        macnote = props.get("label", "?") + (f"@{hex(reg[0])}" if reg else "") + f" +0x{off:x}"
     mem = re.search(r"memory[@\w-]*\s*\{[^}]*?reg\s*=\s*<\s*0x[0-9a-f]+\s+0x([0-9a-f]+)", txt, re.S)
     boots = re.search(r'bootargs\s*=\s*"([^"]*)"', txt)
     return {

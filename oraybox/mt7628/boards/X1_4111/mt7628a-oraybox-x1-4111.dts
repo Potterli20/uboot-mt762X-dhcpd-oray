@@ -5,7 +5,7 @@
  * 证据来源: 内核 DTB 直读（oraybox-x1-4111-6.5.0-sysupgrade-stable-v1.0_20240301.bin）
  *   RAM      : 128MB
  *   console  : console=ttyS0,115200
- *   MAC      : partition@4 偏移 0x9
+ *   MAC      : bdinfo@0xfe0000 +0x9
  *   按键/LED : oraybox:red:status=&gpio0 1, oraybox:blue:status=&gpio0 5, oraybox:white:status=&gpio0 12, reset=&gpio0 6
  *
  * 分区表照抄固件 DTB；u-boot 镜像必须小于 u-boot 分区，CI 里有体积守卫。

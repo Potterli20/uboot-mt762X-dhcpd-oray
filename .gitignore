@@ -99,3 +99,7 @@ configs/mt7621_build_defconfig
 # 上游 *.gitignore 里的 .* 会吃掉整个 .github，导致新增 workflow 必须 git add -f
 !.github/
 !.github/**
+
+# oraybox 工具链是 python，别把字节码带进版本库
+__pycache__/
+*.py[cod]
